@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mysql:*)",
+      "Bash(sc query:*)",
+      "Bash(mvn:*)",
+      "Bash(npm:*)",
+      "Bash(cd:*)"
+    ]
+  }
+}

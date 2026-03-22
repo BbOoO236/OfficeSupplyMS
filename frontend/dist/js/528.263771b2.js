@@ -1,0 +1,2 @@
+"use strict";(self["webpackChunkoffice_supply_management_system"]=self["webpackChunkoffice_supply_management_system"]||[]).push([[528],{9528:function(e,n,s){s.r(n),s.d(n,{default:function(){return c}});var t=function(){var e=this,n=e._self._c;return n("div",{staticClass:"profile-container"},[n("h1",[e._v("个人中心")]),n("el-card",[n("p",[e._v("个人信息页面")])])],1)},a=[],f={name:"Profile"},l=f,u=s(1656),r=(0,u.A)(l,t,a,!1,null,"62f107e2",null),c=r.exports}}]);
+//# sourceMappingURL=528.263771b2.js.map

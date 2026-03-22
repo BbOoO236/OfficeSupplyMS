@@ -1,0 +1,45 @@
+2026-03-22 13:27:11 [main] INFO  c.o.OfficeSupplyManagementSystemApplication - Starting OfficeSupplyManagementSystemApplication using Java 1.8.0_421 on bb236yeye with PID 21544 (D:\OfficeSupplyMS\backend\target\classes started by 赵吕凡 in D:\OfficeSupplyMS\backend)
+2026-03-22 13:27:11 [main] DEBUG c.o.OfficeSupplyManagementSystemApplication - Running with Spring Boot v2.7.18, Spring v5.3.31
+2026-03-22 13:27:11 [main] INFO  c.o.OfficeSupplyManagementSystemApplication - The following 1 profile is active: "dev"
+2026-03-22 13:27:13 [main] INFO  o.s.d.r.config.RepositoryConfigurationDelegate - Bootstrapping Spring Data JDBC repositories in DEFAULT mode.
+2026-03-22 13:27:13 [main] INFO  o.s.d.r.config.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 11 ms. Found 0 JDBC repository interfaces.
+2026-03-22 13:27:14 [main] INFO  o.s.boot.web.embedded.tomcat.TomcatWebServer - Tomcat initialized with port(s): 8080 (http)
+2026-03-22 13:27:14 [main] INFO  org.apache.catalina.core.AprLifecycleListener - Loaded Apache Tomcat Native library [1.3.1] using APR version [1.7.4].
+2026-03-22 13:27:14 [main] INFO  org.apache.catalina.core.AprLifecycleListener - APR capabilities: IPv6 [true], sendfile [true], accept filters [false], random [true], UDS [true].
+2026-03-22 13:27:14 [main] INFO  org.apache.catalina.core.AprLifecycleListener - APR/OpenSSL configuration: useAprConnector [false], useOpenSSL [true]
+2026-03-22 13:27:14 [main] INFO  org.apache.catalina.core.AprLifecycleListener - OpenSSL successfully initialized [OpenSSL 3.0.14 4 Jun 2024]
+2026-03-22 13:27:14 [main] INFO  org.apache.catalina.core.StandardService - Starting service [Tomcat]
+2026-03-22 13:27:14 [main] INFO  org.apache.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/9.0.83]
+2026-03-22 13:27:14 [main] INFO  o.a.c.c.ContainerBase.[Tomcat].[localhost].[/api] - Initializing Spring embedded WebApplicationContext
+2026-03-22 13:27:14 [main] INFO  o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 3111 ms
+2026-03-22 13:27:14 [main] INFO  c.a.d.s.b.a.DruidDataSourceAutoConfigure - Init DruidDataSource
+2026-03-22 13:27:15 [main] INFO  com.alibaba.druid.pool.DruidDataSource - {dataSource-1} inited
+2026-03-22 13:27:19 [main] INFO  org.quartz.impl.StdSchedulerFactory - Using default implementation for ThreadExecutor
+2026-03-22 13:27:19 [main] INFO  org.quartz.simpl.SimpleThreadPool - Job execution threads will use class loader of thread: main
+2026-03-22 13:27:19 [main] INFO  org.quartz.core.SchedulerSignalerImpl - Initialized Scheduler Signaller of type: class org.quartz.core.SchedulerSignalerImpl
+2026-03-22 13:27:19 [main] INFO  org.quartz.core.QuartzScheduler - Quartz Scheduler v.2.3.2 created.
+2026-03-22 13:27:19 [main] INFO  o.s.scheduling.quartz.LocalDataSourceJobStore - Using db table-based data access locking (synchronization).
+2026-03-22 13:27:19 [main] INFO  o.s.scheduling.quartz.LocalDataSourceJobStore - JobStoreCMT initialized.
+2026-03-22 13:27:19 [main] INFO  org.quartz.core.QuartzScheduler - Scheduler meta-data: Quartz Scheduler (v2.3.2) 'OfficeSupplyScheduler' with instanceId 'NON_CLUSTERED'
+  Scheduler class: 'org.quartz.core.QuartzScheduler' - running locally.
+  NOT STARTED.
+  Currently in standby mode.
+  Number of jobs executed: 0
+  Using thread pool 'org.quartz.simpl.SimpleThreadPool' - with 10 threads.
+  Using job-store 'org.springframework.scheduling.quartz.LocalDataSourceJobStore' - which supports persistence. and is not clustered.
+
+2026-03-22 13:27:19 [main] INFO  org.quartz.impl.StdSchedulerFactory - Quartz scheduler 'OfficeSupplyScheduler' initialized from an externally provided properties instance.
+2026-03-22 13:27:19 [main] INFO  org.quartz.impl.StdSchedulerFactory - Quartz scheduler version: 2.3.2
+2026-03-22 13:27:19 [main] INFO  org.quartz.core.QuartzScheduler - JobFactory set to: org.springframework.scheduling.quartz.SpringBeanJobFactory@334540a0
+2026-03-22 13:27:19 [main] INFO  o.s.boot.web.embedded.tomcat.TomcatWebServer - Tomcat started on port(s): 8080 (http) with context path '/api'
+2026-03-22 13:27:19 [main] INFO  o.s.scheduling.quartz.SchedulerFactoryBean - Starting Quartz Scheduler now
+2026-03-22 13:27:19 [main] INFO  o.s.scheduling.quartz.LocalDataSourceJobStore - Freed 0 triggers from 'acquired' / 'blocked' state.
+2026-03-22 13:27:19 [main] INFO  o.s.scheduling.quartz.LocalDataSourceJobStore - Recovering 0 jobs that were in-progress at the time of the last shut-down.
+2026-03-22 13:27:19 [main] INFO  o.s.scheduling.quartz.LocalDataSourceJobStore - Recovery complete.
+2026-03-22 13:27:19 [main] INFO  o.s.scheduling.quartz.LocalDataSourceJobStore - Removed 0 'complete' triggers.
+2026-03-22 13:27:19 [main] INFO  o.s.scheduling.quartz.LocalDataSourceJobStore - Removed 0 stale fired job entries.
+2026-03-22 13:27:19 [main] INFO  org.quartz.core.QuartzScheduler - Scheduler OfficeSupplyScheduler_$_NON_CLUSTERED started.
+2026-03-22 13:27:19 [main] INFO  c.o.OfficeSupplyManagementSystemApplication - Started OfficeSupplyManagementSystemApplication in 9.245 seconds (JVM running for 10.442)
+2026-03-22 13:27:24 [http-nio-8080-exec-2] INFO  o.a.c.c.ContainerBase.[Tomcat].[localhost].[/api] - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-03-22 13:27:24 [http-nio-8080-exec-2] INFO  org.springframework.web.servlet.DispatcherServlet - Initializing Servlet 'dispatcherServlet'
+2026-03-22 13:27:24 [http-nio-8080-exec-2] INFO  org.springframework.web.servlet.DispatcherServlet - Completed initialization in 2 ms
