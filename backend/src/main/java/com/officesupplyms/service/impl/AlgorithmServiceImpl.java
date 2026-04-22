@@ -106,9 +106,9 @@ public class AlgorithmServiceImpl implements AlgorithmService {
             return null;
         }
 
-        // 获取历史消耗数据（最近N个月）
+        // 获取历史消耗数据（扩大时间范围到5年，确保包含所有历史数据）
         LocalDate endDate = LocalDate.now();
-        LocalDate startDate = endDate.minusMonths(period);
+        LocalDate startDate = endDate.minusYears(5);
 
         List<BigDecimal> monthlyConsumptions = getMonthlyConsumptions(materialId, startDate, endDate);
 
