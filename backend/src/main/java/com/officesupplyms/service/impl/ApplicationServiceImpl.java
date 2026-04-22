@@ -2,12 +2,16 @@ package com.officesupplyms.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.officesupplyms.mapper.ApplicationMapper;
+import com.officesupplyms.mapper.ConsumptionHistoryMapper;
 import com.officesupplyms.mapper.MaterialMapper;
+import com.officesupplyms.mapper.StockOutMapper;
 import com.officesupplyms.mapper.UserMapper;
 import com.officesupplyms.model.dto.ApplicationDTO;
 import com.officesupplyms.model.dto.ApproveDTO;
 import com.officesupplyms.model.entity.Application;
+import com.officesupplyms.model.entity.ConsumptionHistory;
 import com.officesupplyms.model.entity.Material;
+import com.officesupplyms.model.entity.StockOut;
 import com.officesupplyms.model.entity.User;
 import com.officesupplyms.model.vo.ApplicationVO;
 import com.officesupplyms.service.ApplicationService;
@@ -17,7 +21,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
+import javax.servlet.http.HttpServletRequest;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -39,9 +47,16 @@ public class ApplicationServiceImpl implements ApplicationService {
     private UserMapper userMapper;
 
     @Autowired
+    private StockOutMapper stockOutMapper;
+
+    @Autowired
+    private ConsumptionHistoryMapper consumptionHistoryMapper;
+
+    @Autowired
     private JwtUtil jwtUtil;
 
     private static final DateTimeFormatter NO_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+    private static final DateTimeFormatter STOCK_OUT_NO_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
 
     @Override
     @Transactional
@@ -105,7 +120,7 @@ public class ApplicationServiceImpl implements ApplicationService {
 
         Long currentUserId = getCurrentUserId();
         User currentUser = userMapper.selectById(currentUserId);
-        if (currentUser == null || !"ADMIN".equals(currentUser.getRole())) {
+        if (currentUser == null || !"admin".equals(currentUser.getRole())) {
             throw new RuntimeException("无审批权限");
         }
 
@@ -159,13 +174,35 @@ public class ApplicationServiceImpl implements ApplicationService {
             throw new RuntimeException("库存更新失败");
         }
 
+        // 创建出库单记录
+        StockOut stockOut = new StockOut();
+        stockOut.setStockOutNo(generateStockOutNo());
+        stockOut.setMaterialId(application.getMaterialId());
+        stockOut.setQuantity(application.getQuantity());
+        stockOut.setType("APPLICATION");
+        stockOut.setApplicationId(applicationId);
+        stockOut.setOutTime(LocalDateTime.now());
+        stockOut.setOperatorId(currentUserId);
+        stockOut.setReason(application.getPurpose());
+        stockOutMapper.insert(stockOut);
+
         // 更新申领单状态
         application.setStatus("COMPLETED");
         application.setOutboundTime(LocalDateTime.now());
         application.setOutboundUserId(currentUserId);
         applicationMapper.updateById(application);
 
-        // 记录消耗历史（可在此处调用ConsumptionHistoryService）
+        // 记录消耗历史
+        ConsumptionHistory consumptionHistory = new ConsumptionHistory();
+        consumptionHistory.setMaterialId(application.getMaterialId());
+        consumptionHistory.setUserId(application.getUserId());
+        consumptionHistory.setQuantity(application.getQuantity());
+        consumptionHistory.setType("APPLICATION");
+        consumptionHistory.setRecordDate(LocalDate.now());
+        consumptionHistory.setRecordTime(LocalDateTime.now());
+        consumptionHistory.setApplicationId(application.getId());
+        consumptionHistory.setStockOutId(stockOut.getId());
+        consumptionHistoryMapper.insert(consumptionHistory);
 
         return convertToVO(application);
     }
@@ -296,10 +333,26 @@ public class ApplicationServiceImpl implements ApplicationService {
         return "APP" + timePart + randomPart;
     }
 
+    private String generateStockOutNo() {
+        // 格式: OUT + 年月日时分秒 + 随机数
+        String timePart = LocalDateTime.now().format(STOCK_OUT_NO_FORMATTER);
+        String randomPart = String.format("%04d", new Random().nextInt(10000));
+        return "OUT" + timePart + randomPart;
+    }
+
     private Long getCurrentUserId() {
-        // 简化处理：从JWT token或SecurityContext获取
-        // 这里暂时返回1（管理员ID）
-        return 1L;
+        // 从请求头中获取token
+        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new RuntimeException("未找到有效的身份验证令牌");
+        }
+        String token = authHeader.substring(7);
+        // 验证token
+        if (!jwtUtil.validateToken(token)) {
+            throw new RuntimeException("令牌无效或已过期");
+        }
+        return jwtUtil.getUserIdFromToken(token);
     }
 
     private ApplicationVO convertToVO(Application application) {
@@ -319,6 +372,7 @@ public class ApplicationServiceImpl implements ApplicationService {
             vo.setMaterialName(material.getName());
             vo.setMaterialCode(material.getCode());
             vo.setMaterialUnit(material.getUnit());
+            vo.setMaterialStock(material.getCurrentStock());
         }
 
         // 查询审批人信息
