@@ -283,15 +283,16 @@ public class AlgorithmServiceImpl implements AlgorithmService {
     @Override
     @Transactional
     public void updateMaterialAnnualConsumption() {
-        // 更新所有物资的年消耗数据
+        // 更新所有物资的年消耗数据（使用所有历史数据）
         LocalDate endDate = LocalDate.now();
-        LocalDate startDate = endDate.minusYears(1);
+        // 扩大时间范围到5年前，确保历史测试数据都能参与计算
+        LocalDate startDate = endDate.minusYears(5);
 
         // 获取所有物资
         List<Material> materials = materialMapper.selectList(null);
 
         for (Material material : materials) {
-            // 计算过去一年的消耗总量
+            // 计算过去5年内的消耗总量（确保包含所有历史数据）
             Integer annualConsumption = consumptionHistoryMapper.sumQuantityByMaterialIdAndDateRange(
                     material.getId(), startDate, endDate);
 

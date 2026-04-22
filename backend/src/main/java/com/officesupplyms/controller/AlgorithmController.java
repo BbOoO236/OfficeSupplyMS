@@ -118,10 +118,22 @@ public class AlgorithmController {
     }
 
     /**
+     * 手动触发年消耗数据更新
+     */
+    @PostMapping("/update-annual-consumption")
+    public Result<Void> updateAnnualConsumption() {
+        algorithmService.updateMaterialAnnualConsumption();
+        return Result.success("年消耗数据更新完成");
+    }
+
+    /**
      * 手动触发ABC分类计算（定时任务）
      */
     @PostMapping("/schedule/abc-classification")
     public Result<Void> scheduleAbcClassification() {
+        // 先更新年消耗数据
+        algorithmService.updateMaterialAnnualConsumption();
+        // 再执行ABC分类
         algorithmService.scheduleAbcClassification();
         return Result.success("ABC分类计算任务已触发");
     }
