@@ -93,3 +93,11 @@ export function scheduleDemandForecast() {
     method: 'post'
   })
 }
+
+export function checkApplicationAnomaly(userId, materialId, quantity) {
+  return request({
+    url: '/algorithms/check-application-anomaly',
+    method: 'get',
+    params: { userId, materialId, quantity }
+  })
+}

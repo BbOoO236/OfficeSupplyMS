@@ -82,4 +82,68 @@ public class AlgorithmResultVO {
         private String title; // 图表标题
         private String unit; // 单位
     }
+
+    // ABC分类扁平化结果
+    @Data
+    public static class AbcClassificationFlatVO {
+        private Long materialId;
+        private String materialName;
+        private String materialCode;
+        private BigDecimal annualConsumptionAmount;
+        private BigDecimal cumulativePercentage;
+        private String abcClass;
+        private String managementStrategy;
+    }
+
+    // 需求预测扁平化结果
+    @Data
+    public static class DemandForecastFlatVO {
+        private Long materialId;
+        private String materialName;
+        private String materialCode;
+        private BigDecimal historicalAvg;
+        private BigDecimal forecastAvg;
+        private BigDecimal forecastTotal;
+        private String confidenceInterval;
+        private BigDecimal recommendedPurchase;
+    }
+
+    // 补货点扁平化结果
+    @Data
+    public static class ReorderPointFlatVO {
+        private Long materialId;
+        private String materialName;
+        private String materialCode;
+        private Integer currentStock;
+        private BigDecimal dailyConsumption;
+        private Integer leadTime;
+        private BigDecimal safetyFactor;
+        private Integer safetyStock;
+        private Integer reorderPoint;
+        private Boolean needReorder;
+        private String stockStatus;
+    }
+
+    // 异常检测扁平化结果
+    @Data
+    public static class AnomalyDetectionFlatVO {
+        private Long applicationId;
+        private String applicationNo;
+        private Long userId;
+        private String userName;
+        private Long materialId;
+        private String materialName;
+        private String materialCode;
+        private Integer currentQuantity;
+        private BigDecimal historicalMean;
+        private BigDecimal historicalStdDev;
+        private BigDecimal threshold;
+        private Boolean isAnomaly;
+        private String anomalyType;
+        private BigDecimal detectedValue;
+        private String normalRange;
+        private BigDecimal deviation;
+        private String suggestedAction;
+        private String detectionTime;
+    }
 }

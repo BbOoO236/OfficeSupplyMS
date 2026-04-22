@@ -24,17 +24,17 @@ public class AlgorithmController {
      * ABC分类计算
      */
     @GetMapping("/abc-classification")
-    public Result<AlgorithmResultVO.AbcClassificationResult> calculateAbcClassification() {
-        return Result.success(algorithmService.calculateAbcClassification());
+    public Result<List<AlgorithmResultVO.AbcClassificationFlatVO>> calculateAbcClassification() {
+        return Result.success(algorithmService.calculateAbcClassificationFlat());
     }
 
     /**
      * 需求预测（移动平均法）
      */
     @GetMapping("/demand-forecast")
-    public Result<List<AlgorithmResultVO.DemandForecastResult>> forecastDemand(
+    public Result<List<AlgorithmResultVO.DemandForecastFlatVO>> forecastDemand(
             @RequestParam(defaultValue = "3") Integer period) {
-        return Result.success(algorithmService.forecastDemand(period));
+        return Result.success(algorithmService.forecastDemandFlat(period));
     }
 
     /**
@@ -51,8 +51,8 @@ public class AlgorithmController {
      * 补货点计算
      */
     @GetMapping("/reorder-points")
-    public Result<List<AlgorithmResultVO.ReorderPointResult>> calculateReorderPoints() {
-        return Result.success(algorithmService.calculateReorderPoints());
+    public Result<List<AlgorithmResultVO.ReorderPointFlatVO>> calculateReorderPoints() {
+        return Result.success(algorithmService.calculateReorderPointsFlat());
     }
 
     /**
@@ -68,9 +68,9 @@ public class AlgorithmController {
      * 异常检测（3σ原则）
      */
     @GetMapping("/anomaly-detection")
-    public Result<List<AlgorithmResultVO.AnomalyDetectionResult>> detectAnomalies(
+    public Result<List<AlgorithmResultVO.AnomalyDetectionFlatVO>> detectAnomalies(
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date) {
-        return Result.success(algorithmService.detectAnomalies(date));
+        return Result.success(algorithmService.detectAnomaliesFlat(date));
     }
 
     /**
@@ -142,5 +142,16 @@ public class AlgorithmController {
     public Result<Void> scheduleDemandForecast() {
         algorithmService.scheduleDemandForecast();
         return Result.success("需求预测任务已触发");
+    }
+
+    /**
+     * 校验申领是否异常（实时）
+     */
+    @GetMapping("/check-application-anomaly")
+    public Result<AlgorithmResultVO.AnomalyDetectionFlatVO> checkApplicationAnomaly(
+            @RequestParam Long userId,
+            @RequestParam Long materialId,
+            @RequestParam Integer quantity) {
+        return Result.success(algorithmService.checkApplicationAnomaly(userId, materialId, quantity));
     }
 }

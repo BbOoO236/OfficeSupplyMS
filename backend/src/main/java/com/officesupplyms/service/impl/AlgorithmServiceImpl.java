@@ -1,10 +1,13 @@
 package com.officesupplyms.service.impl;
 
 import com.officesupplyms.algorithm.AlgorithmUtil;
+import com.officesupplyms.converter.AlgorithmResultConverter;
 import com.officesupplyms.mapper.ConsumptionHistoryMapper;
 import com.officesupplyms.mapper.MaterialMapper;
+import com.officesupplyms.mapper.UserMapper;
 import com.officesupplyms.model.entity.ConsumptionHistory;
 import com.officesupplyms.model.entity.Material;
+import com.officesupplyms.model.entity.User;
 import com.officesupplyms.model.vo.AlgorithmResultVO;
 import com.officesupplyms.model.vo.MaterialVO;
 import com.officesupplyms.service.AlgorithmService;
@@ -15,12 +18,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -35,6 +40,9 @@ public class AlgorithmServiceImpl implements AlgorithmService {
 
     @Autowired
     private ConsumptionHistoryMapper consumptionHistoryMapper;
+
+    @Autowired
+    private UserMapper userMapper;
 
     @Value("${app.algorithm.abc-class-a-percent:0.7}")
     private double abcClassAPercent;
@@ -525,5 +533,96 @@ public class AlgorithmServiceImpl implements AlgorithmService {
         public Material getMaterial() {
             return material;
         }
+    }
+
+    @Override
+    public List<AlgorithmResultVO.AbcClassificationFlatVO> calculateAbcClassificationFlat() {
+        AlgorithmResultVO.AbcClassificationResult result = calculateAbcClassification();
+        return AlgorithmResultConverter.convertAbcClassification(result);
+    }
+
+    @Override
+    public List<AlgorithmResultVO.DemandForecastFlatVO> forecastDemandFlat(Integer period) {
+        List<AlgorithmResultVO.DemandForecastResult> results = forecastDemand(period);
+        List<AlgorithmResultVO.DemandForecastFlatVO> flatResults = new ArrayList<>();
+        for (AlgorithmResultVO.DemandForecastResult r : results) {
+            flatResults.add(AlgorithmResultConverter.convertDemandForecast(r));
+        }
+        return flatResults;
+    }
+
+    @Override
+    public List<AlgorithmResultVO.ReorderPointFlatVO> calculateReorderPointsFlat() {
+        List<AlgorithmResultVO.ReorderPointResult> results = calculateReorderPoints();
+        List<AlgorithmResultVO.ReorderPointFlatVO> flatResults = new ArrayList<>();
+        for (AlgorithmResultVO.ReorderPointResult r : results) {
+            flatResults.add(AlgorithmResultConverter.convertReorderPoint(r));
+        }
+        return flatResults;
+    }
+
+    @Override
+    public List<AlgorithmResultVO.AnomalyDetectionFlatVO> detectAnomaliesFlat(LocalDate date) {
+        List<AlgorithmResultVO.AnomalyDetectionResult> results = detectAnomalies(date);
+        List<AlgorithmResultVO.AnomalyDetectionFlatVO> flatResults = new ArrayList<>();
+        for (AlgorithmResultVO.AnomalyDetectionResult r : results) {
+            flatResults.add(AlgorithmResultConverter.convertAnomalyDetection(r));
+        }
+        return flatResults;
+    }
+
+    @Override
+    public AlgorithmResultVO.AnomalyDetectionFlatVO checkApplicationAnomaly(
+            Long userId, Long materialId, Integer quantity) {
+        AlgorithmResultVO.AnomalyDetectionResult stat = calculateUserMaterialStatistics(userId, materialId);
+
+        AlgorithmResultVO.AnomalyDetectionFlatVO vo = new AlgorithmResultVO.AnomalyDetectionFlatVO();
+        vo.setUserId(userId);
+        vo.setMaterialId(materialId);
+        vo.setCurrentQuantity(quantity);
+        vo.setHistoricalMean(stat.getHistoricalMean());
+        vo.setHistoricalStdDev(stat.getHistoricalStdDev());
+        vo.setThreshold(stat.getThreshold());
+
+        if (stat.getThreshold() != null) {
+            boolean isAnomaly = BigDecimal.valueOf(quantity).compareTo(stat.getThreshold()) > 0;
+            vo.setIsAnomaly(isAnomaly);
+
+            if (isAnomaly) {
+                vo.setAnomalyType("HIGH");
+                vo.setDetectedValue(BigDecimal.valueOf(quantity));
+                vo.setSuggestedAction("建议审批人仔细核实该申领，可能存在异常");
+
+                if (stat.getHistoricalMean() != null && stat.getHistoricalMean().compareTo(BigDecimal.ZERO) > 0) {
+                    BigDecimal deviation = BigDecimal.valueOf(quantity)
+                        .subtract(stat.getHistoricalMean())
+                        .divide(stat.getHistoricalMean(), 4, RoundingMode.HALF_UP)
+                        .multiply(BigDecimal.valueOf(100));
+                    vo.setDeviation(deviation.setScale(2, RoundingMode.HALF_UP));
+                }
+
+                if (stat.getHistoricalMean() != null && stat.getHistoricalStdDev() != null) {
+                    BigDecimal lower = stat.getHistoricalMean().subtract(stat.getHistoricalStdDev());
+                    BigDecimal upper = stat.getHistoricalMean().add(stat.getHistoricalStdDev());
+                    vo.setNormalRange(lower.setScale(2, RoundingMode.HALF_UP) + " ~ " +
+                                     upper.setScale(2, RoundingMode.HALF_UP));
+                }
+            }
+        } else {
+            vo.setIsAnomaly(false);
+        }
+
+        Material material = materialMapper.selectById(materialId);
+        if (material != null) {
+            vo.setMaterialName(material.getName());
+            vo.setMaterialCode(material.getCode());
+        }
+        User user = userMapper.selectById(userId);
+        if (user != null) {
+            vo.setUserName(user.getRealName());
+        }
+        vo.setDetectionTime(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+
+        return vo;
     }
 }

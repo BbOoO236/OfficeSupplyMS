@@ -89,4 +89,29 @@ public interface AlgorithmService {
      * 获取预测与实际消耗对比数据
      */
     AlgorithmResultVO.ChartData getForecastVsActualComparison(Long materialId);
+
+    /**
+     * ABC分类计算 - 返回扁平化结果
+     */
+    List<AlgorithmResultVO.AbcClassificationFlatVO> calculateAbcClassificationFlat();
+
+    /**
+     * 需求预测 - 返回扁平化结果
+     */
+    List<AlgorithmResultVO.DemandForecastFlatVO> forecastDemandFlat(Integer period);
+
+    /**
+     * 补货点计算 - 返回扁平化结果
+     */
+    List<AlgorithmResultVO.ReorderPointFlatVO> calculateReorderPointsFlat();
+
+    /**
+     * 异常检测 - 返回扁平化结果
+     */
+    List<AlgorithmResultVO.AnomalyDetectionFlatVO> detectAnomaliesFlat(LocalDate date);
+
+    /**
+     * 校验申领是否异常（实时）
+     */
+    AlgorithmResultVO.AnomalyDetectionFlatVO checkApplicationAnomaly(Long userId, Long materialId, Integer quantity);
 }
