@@ -90,6 +90,7 @@ public class AlgorithmResultVO {
         private String materialName;
         private String materialCode;
         private BigDecimal annualConsumptionAmount;
+        private BigDecimal consumptionAmount; // 前端展示用，与annualConsumptionAmount相同
         private BigDecimal cumulativePercentage;
         private String abcClass;
         private String managementStrategy;

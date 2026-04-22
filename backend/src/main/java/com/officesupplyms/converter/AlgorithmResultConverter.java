@@ -53,6 +53,7 @@ public class AlgorithmResultConverter {
             flatVO.setMaterialName(material.getName());
             flatVO.setMaterialCode(material.getCode());
             flatVO.setAnnualConsumptionAmount(material.getAnnualConsumptionAmount());
+            flatVO.setConsumptionAmount(material.getAnnualConsumptionAmount()); // 前端展示用
 
             // 计算累计百分比
             if (material.getAnnualConsumptionAmount() != null && totalAmount.compareTo(BigDecimal.ZERO) > 0) {
