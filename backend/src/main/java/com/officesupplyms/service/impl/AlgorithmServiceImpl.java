@@ -515,13 +515,22 @@ public class AlgorithmServiceImpl implements AlgorithmService {
      */
     private static class AbcClassifiableMaterial implements AlgorithmUtil.AbcClassifiable {
         private final Material material;
+        private BigDecimal calculatedAmount; // 实时计算的消耗金额
 
         public AbcClassifiableMaterial(Material material) {
             this.material = material;
         }
 
+        public void setCalculatedAmount(BigDecimal amount) {
+            this.calculatedAmount = amount;
+        }
+
         @Override
         public BigDecimal getAnnualConsumptionAmount() {
+            // 优先返回计算出的金额，否则返回数据库中的值
+            if (calculatedAmount != null) {
+                return calculatedAmount;
+            }
             return material.getAnnualConsumptionAmount() != null ?
                     material.getAnnualConsumptionAmount() : BigDecimal.ZERO;
         }
@@ -538,8 +547,101 @@ public class AlgorithmServiceImpl implements AlgorithmService {
 
     @Override
     public List<AlgorithmResultVO.AbcClassificationFlatVO> calculateAbcClassificationFlat() {
-        AlgorithmResultVO.AbcClassificationResult result = calculateAbcClassification();
-        return AlgorithmResultConverter.convertAbcClassification(result);
+        // 实时从消耗历史计算ABC分类
+        List<Material> materials = materialMapper.selectList(null);
+        LocalDate endDate = LocalDate.now();
+        LocalDate startDate = endDate.minusYears(5); // 扩大范围到5年
+
+        // 用于ABC计算的对象列表
+        List<AbcClassifiableMaterial> abcMaterials = new ArrayList<>();
+
+        BigDecimal totalAmount = BigDecimal.ZERO;
+
+        for (Material material : materials) {
+            // 实时查询该物资的历史消耗总量
+            Integer totalConsumption = consumptionHistoryMapper.sumQuantityByMaterialIdAndDateRange(
+                    material.getId(), startDate, endDate);
+            if (totalConsumption == null) {
+                totalConsumption = 0;
+            }
+
+            // 计算年消耗金额 = 总消耗量 × 单价
+            BigDecimal consumptionAmount = material.getUnitPrice() != null ?
+                    material.getUnitPrice().multiply(BigDecimal.valueOf(totalConsumption)) :
+                    BigDecimal.ZERO;
+
+            totalAmount = totalAmount.add(consumptionAmount);
+
+            // 创建可分类对象
+            AbcClassifiableMaterial abcMat = new AbcClassifiableMaterial(material);
+            // 临时设置计算出的消耗金额（用于排序）
+            abcMat.setCalculatedAmount(consumptionAmount);
+            abcMaterials.add(abcMat);
+        }
+
+        // 按消耗金额降序排序
+        abcMaterials.sort((m1, m2) -> m2.getAnnualConsumptionAmount().compareTo(m1.getAnnualConsumptionAmount()));
+
+        // 计算累计百分比并分类
+        List<AbcClassifiableMaterial> classA = new ArrayList<>();
+        List<AbcClassifiableMaterial> classB = new ArrayList<>();
+        List<AbcClassifiableMaterial> classC = new ArrayList<>();
+
+        BigDecimal cumulativeAmount = BigDecimal.ZERO;
+
+        for (AbcClassifiableMaterial mat : abcMaterials) {
+            cumulativeAmount = cumulativeAmount.add(mat.getAnnualConsumptionAmount());
+            BigDecimal cumulativePercent = totalAmount.compareTo(BigDecimal.ZERO) > 0 ?
+                    cumulativeAmount.divide(totalAmount, 4, RoundingMode.HALF_UP) : BigDecimal.ZERO;
+
+            if (cumulativePercent.doubleValue() <= abcClassAPercent) {
+                classA.add(mat);
+                mat.setAbcClass("A");
+            } else if (cumulativePercent.doubleValue() <= abcClassAPercent + abcClassBPercent) {
+                classB.add(mat);
+                mat.setAbcClass("B");
+            } else {
+                classC.add(mat);
+                mat.setAbcClass("C");
+            }
+        }
+
+        // 更新数据库中的ABC分类
+        for (AbcClassifiableMaterial mat : classA) {
+            materialMapper.updateAbcClass(mat.getMaterial().getId(), "A");
+        }
+        for (AbcClassifiableMaterial mat : classB) {
+            materialMapper.updateAbcClass(mat.getMaterial().getId(), "B");
+        }
+        for (AbcClassifiableMaterial mat : classC) {
+            materialMapper.updateAbcClass(mat.getMaterial().getId(), "C");
+        }
+
+        // 转换为扁平化结果
+        List<AlgorithmResultVO.AbcClassificationFlatVO> flatResults = new ArrayList<>();
+        BigDecimal cumulativeForCalc = BigDecimal.ZERO;
+
+        for (AbcClassifiableMaterial mat : abcMaterials) {
+            AlgorithmResultVO.AbcClassificationFlatVO vo = new AlgorithmResultVO.AbcClassificationFlatVO();
+            Material m = mat.getMaterial();
+            vo.setMaterialId(m.getId());
+            vo.setMaterialName(m.getName());
+            vo.setMaterialCode(m.getCode());
+            vo.setAnnualConsumptionAmount(mat.getAnnualConsumptionAmount());
+            vo.setConsumptionAmount(mat.getAnnualConsumptionAmount());
+
+            cumulativeForCalc = cumulativeForCalc.add(mat.getAnnualConsumptionAmount());
+            BigDecimal cumulativePercent = totalAmount.compareTo(BigDecimal.ZERO) > 0 ?
+                    cumulativeForCalc.divide(totalAmount, 4, RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(100)) :
+                    BigDecimal.ZERO;
+            vo.setCumulativePercentage(cumulativePercent);
+            vo.setAbcClass(mat.getMaterial().getAbcClass());
+            vo.setManagementStrategy(getManagementStrategy(mat.getMaterial().getAbcClass()));
+
+            flatResults.add(vo);
+        }
+
+        return flatResults;
     }
 
     @Override
@@ -625,5 +727,23 @@ public class AlgorithmServiceImpl implements AlgorithmService {
         vo.setDetectionTime(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
 
         return vo;
+    }
+
+    /**
+     * 根据ABC分类获取管理策略
+     */
+    private String getManagementStrategy(String abcClass) {
+        if (abcClass == null) {
+            return "简化管理，按需采购";
+        }
+        switch (abcClass) {
+            case "A":
+                return "重点管理，优先补货";
+            case "B":
+                return "常规管理，定期盘点";
+            case "C":
+            default:
+                return "简化管理，按需采购";
+        }
     }
 }
