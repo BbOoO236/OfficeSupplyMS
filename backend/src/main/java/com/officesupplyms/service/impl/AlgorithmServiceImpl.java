@@ -498,7 +498,6 @@ public class AlgorithmServiceImpl implements AlgorithmService {
     }
 
     private MaterialVO convertToMaterialVO(Material material) {
-        // 这里简化处理，实际需要完整转换
         MaterialVO vo = new MaterialVO();
         vo.setId(material.getId());
         vo.setCode(material.getCode());
@@ -507,6 +506,7 @@ public class AlgorithmServiceImpl implements AlgorithmService {
         vo.setUnit(material.getUnit());
         vo.setCurrentStock(material.getCurrentStock());
         vo.setAbcClass(material.getAbcClass());
+        vo.setAnnualConsumptionAmount(material.getAnnualConsumptionAmount());
         return vo;
     }
 
