@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 import Cookies from 'js-cookie'
+import { login as authLogin } from '@/api/auth'
 
 Vue.use(Vuex)
 
@@ -10,7 +11,8 @@ export default new Vuex.Store({
     userInfo: JSON.parse(localStorage.getItem('userInfo') || '{}'),
     sidebar: {
       opened: Cookies.get('sidebarStatus') ? !!+Cookies.get('sidebarStatus') : true
-    }
+    },
+    activeModule: 'dashboard' // 当前激活的模块标识
   },
   mutations: {
     SET_TOKEN: (state, token) => {
@@ -36,23 +38,29 @@ export default new Vuex.Store({
       } else {
         Cookies.set('sidebarStatus', 0)
       }
+    },
+    SET_ACTIVE_MODULE: (state, module) => {
+      state.activeModule = module
     }
   },
   actions: {
     login({ commit }, userInfo) {
       return new Promise((resolve, reject) => {
-        // 这里调用登录API
-        // 模拟登录
-        const token = 'mock-token-' + Date.now()
-        commit('SET_TOKEN', token)
-        commit('SET_USER_INFO', {
-          userId: 1,
-          username: userInfo.username,
-          realName: '管理员',
-          role: 'ADMIN',
-          department: 'IT部'
+        authLogin(userInfo).then(response => {
+          const { data } = response
+          // data应该包含token和用户信息
+          commit('SET_TOKEN', data.token)
+          commit('SET_USER_INFO', {
+            userId: data.userId,
+            username: data.username,
+            realName: data.realName || '',
+            role: data.role,
+            department: data.department || ''
+          })
+          resolve()
+        }).catch(error => {
+          reject(error)
         })
-        resolve()
       })
     },
     logout({ commit }) {
@@ -70,6 +78,9 @@ export default new Vuex.Store({
     username: state => state.userInfo.username || '',
     realName: state => state.userInfo.realName || '',
     department: state => state.userInfo.department || '',
-    sidebar: state => state.sidebar
+    sidebar: state => state.sidebar,
+    activeModule: state => state.activeModule,
+    // 模块列表可以从constants中导入，但这里直接返回空数组，由组件导入
+    modules: () => []
   }
 })

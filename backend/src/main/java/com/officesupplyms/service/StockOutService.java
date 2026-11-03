@@ -60,4 +60,14 @@ public interface StockOutService {
      * 统计指定物资的总出库数量
      */
     Integer sumQuantityByMaterialId(Long materialId);
+
+    /**
+     * 删除出库单
+     */
+    boolean deleteStockOut(Long stockOutId);
+
+    /**
+     * 更新出库单
+     */
+    StockOutVO updateStockOut(Long stockOutId, StockOutDTO stockOutDTO);
 }

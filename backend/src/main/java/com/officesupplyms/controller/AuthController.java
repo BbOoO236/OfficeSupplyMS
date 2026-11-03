@@ -3,6 +3,7 @@ package com.officesupplyms.controller;
 import com.officesupplyms.model.dto.LoginDTO;
 import com.officesupplyms.model.vo.LoginVO;
 import com.officesupplyms.service.UserService;
+import com.officesupplyms.utils.JwtUtil;
 import com.officesupplyms.utils.Result;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -21,15 +22,33 @@ public class AuthController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private JwtUtil jwtUtil;
+
     /**
      * 用户登录
      */
     @PostMapping("/login")
     public Result<LoginVO> login(@Validated @RequestBody LoginDTO loginDTO) {
-        String token = userService.login(loginDTO.getUsername(), loginDTO.getPassword());
+        String token = userService.login(loginDTO.getUsername(), loginDTO.getPassword(), loginDTO.getRole());
         LoginVO loginVO = new LoginVO();
-        // 这里应该返回用户信息，简化处理
+        // 设置token
         loginVO.setToken(token);
+        // 从token中解析用户信息
+        Long userId = jwtUtil.getUserIdFromToken(token);
+        loginVO.setUserId(userId);
+        loginVO.setUsername(jwtUtil.getUsernameFromToken(token));
+        loginVO.setRole(jwtUtil.getRoleFromToken(token));
+        // 查询用户详细信息
+        try {
+            com.officesupplyms.model.vo.UserVO userVO = userService.getUserById(userId);
+            if (userVO != null) {
+                loginVO.setRealName(userVO.getRealName());
+                loginVO.setDepartment(userVO.getDepartment());
+            }
+        } catch (Exception e) {
+            // 忽略错误，使用默认值
+        }
         return Result.success("登录成功", loginVO);
     }
 

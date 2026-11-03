@@ -118,6 +118,30 @@ public class AlgorithmController {
     }
 
     /**
+     * 获取所有异常申领记录
+     */
+    @GetMapping("/anomalies")
+    public Result<List<AlgorithmResultVO.AnomalyDetectionFlatVO>> getAnomalousApplications() {
+        return Result.success(algorithmService.getAnomalousApplications());
+    }
+
+    /**
+     * 获取部门申领统计数据
+     */
+    @GetMapping("/charts/department-application")
+    public Result<AlgorithmResultVO.ChartData> getDepartmentApplicationStats() {
+        return Result.success(algorithmService.getDepartmentApplicationStats());
+    }
+
+    /**
+     * 获取库存状态分布数据
+     */
+    @GetMapping("/charts/stock-status")
+    public Result<AlgorithmResultVO.ChartData> getStockStatusDistribution() {
+        return Result.success(algorithmService.getStockStatusDistribution());
+    }
+
+    /**
      * 手动触发年消耗数据更新
      */
     @PostMapping("/update-annual-consumption")

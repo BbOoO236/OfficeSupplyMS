@@ -31,20 +31,15 @@ public class MaterialDTO {
     @NotNull(message = "单价不能为空")
     private BigDecimal unitPrice;
 
-    @NotNull(message = "采购提前期不能为空")
-    private Integer leadTime = 7;
+    private Integer leadTime;
 
-    @NotNull(message = "安全系数不能为空")
-    private BigDecimal safetyFactor = new BigDecimal("1.5");
+    private BigDecimal safetyFactor;
 
-    @NotNull(message = "当前库存不能为空")
     private Integer currentStock = 0;
 
-    @NotNull(message = "最低库存不能为空")
-    private Integer minStock = 0;
+    private Integer minStock;
 
-    @NotNull(message = "最高库存不能为空")
-    private Integer maxStock = 0;
+    private Integer maxStock;
 
     private Integer status = 1; // 1-正常, 0-停用
 

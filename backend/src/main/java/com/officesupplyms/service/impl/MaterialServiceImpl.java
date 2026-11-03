@@ -1,9 +1,14 @@
 package com.officesupplyms.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.officesupplyms.mapper.InventoryCheckMapper;
 import com.officesupplyms.mapper.MaterialMapper;
 import com.officesupplyms.model.dto.MaterialDTO;
+import com.officesupplyms.model.entity.InventoryCheck;
 import com.officesupplyms.model.entity.Material;
 import com.officesupplyms.model.vo.MaterialVO;
+import com.officesupplyms.model.vo.PageResult;
+import com.officesupplyms.service.InventoryCheckService;
 import com.officesupplyms.service.MaterialService;
 import com.officesupplyms.algorithm.AlgorithmUtil;
 import org.springframework.beans.BeanUtils;
@@ -13,7 +18,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 /**
@@ -24,6 +31,14 @@ public class MaterialServiceImpl implements MaterialService {
 
     @Autowired
     private MaterialMapper materialMapper;
+
+    @Autowired
+    private InventoryCheckMapper inventoryCheckMapper;
+
+    @Autowired
+    private InventoryCheckService inventoryCheckService;
+
+    private static final DateTimeFormatter NO_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
 
     @Override
     public MaterialVO createMaterial(MaterialDTO materialDTO) {
@@ -53,7 +68,26 @@ public class MaterialServiceImpl implements MaterialService {
 
         materialMapper.insert(material);
 
+        // 自动创建盘点记录：账面=实际=当前库存，状态=正常
+        InventoryCheck inventoryCheck = new InventoryCheck();
+        inventoryCheck.setCheckNo(generateCheckNo());
+        inventoryCheck.setMaterialId(material.getId());
+        inventoryCheck.setBookQuantity(material.getCurrentStock());
+        inventoryCheck.setActualQuantity(material.getCurrentStock());
+        inventoryCheck.setDifference(0);
+        inventoryCheck.setCheckTime(LocalDateTime.now());
+        inventoryCheck.setOperatorId(1L); // 管理员
+        inventoryCheck.setAdjustment(1); // 已调整=正常
+        inventoryCheck.setRemark("物资新增时自动创建");
+        inventoryCheckMapper.insert(inventoryCheck);
+
         return convertToVO(material);
+    }
+
+    private String generateCheckNo() {
+        String timePart = LocalDateTime.now().format(NO_FORMATTER);
+        String randomPart = String.format("%04d", new Random().nextInt(10000));
+        return "CHK" + timePart + randomPart;
     }
 
     @Override
@@ -70,6 +104,10 @@ public class MaterialServiceImpl implements MaterialService {
                 throw new RuntimeException("物资编码已存在");
             }
         }
+
+        // 记录库存变化（用于更新盘点）
+        Integer oldStock = material.getCurrentStock();
+        Integer newStock = null;
 
         // 更新物资信息
         if (materialDTO.getCode() != null) {
@@ -98,6 +136,7 @@ public class MaterialServiceImpl implements MaterialService {
         }
         if (materialDTO.getCurrentStock() != null) {
             material.setCurrentStock(materialDTO.getCurrentStock());
+            newStock = materialDTO.getCurrentStock();
         }
         if (materialDTO.getMinStock() != null) {
             material.setMinStock(materialDTO.getMinStock());
@@ -115,6 +154,11 @@ public class MaterialServiceImpl implements MaterialService {
         material.setUpdateTime(LocalDateTime.now());
         materialMapper.updateById(material);
 
+        // 如果库存发生了变化，自动更新盘点记录
+        if (newStock != null && !oldStock.equals(newStock)) {
+            inventoryCheckService.updateCheckOnStockChange(materialId, oldStock, newStock);
+        }
+
         return convertToVO(material);
     }
 
@@ -127,6 +171,20 @@ public class MaterialServiceImpl implements MaterialService {
 
         // 逻辑删除：更新状态为停用
         material.setStatus(0);
+        material.setUpdateTime(LocalDateTime.now());
+        materialMapper.updateById(material);
+
+        return true;
+    }
+
+    @Override
+    public boolean updateMaterialStatus(Long materialId, Integer status) {
+        Material material = materialMapper.selectById(materialId);
+        if (material == null) {
+            return false;
+        }
+
+        material.setStatus(status);
         material.setUpdateTime(LocalDateTime.now());
         materialMapper.updateById(material);
 
@@ -152,11 +210,63 @@ public class MaterialServiceImpl implements MaterialService {
     }
 
     @Override
-    public List<MaterialVO> getAllMaterials() {
+    public PageResult<MaterialVO> getAllMaterials(String name, String code, String category, String abcClass, String stockStatus, Long page, Long limit) {
         List<Material> materials = materialMapper.selectList(null);
-        return materials.stream()
+        List<MaterialVO> result = materials.stream()
                 .map(this::convertToVO)
                 .collect(Collectors.toList());
+
+        // 按名称模糊过滤
+        if (name != null && !name.isEmpty()) {
+            final String n = name;
+            result = result.stream()
+                    .filter(m -> m.getName() != null && m.getName().contains(n))
+                    .collect(Collectors.toList());
+        }
+        // 按编码模糊过滤
+        if (code != null && !code.isEmpty()) {
+            final String c = code;
+            result = result.stream()
+                    .filter(m -> m.getCode() != null && m.getCode().contains(c))
+                    .collect(Collectors.toList());
+        }
+        // 按类别过滤
+        if (category != null && !category.isEmpty()) {
+            final String cat = category;
+            result = result.stream()
+                    .filter(m -> cat.equals(m.getCategory()))
+                    .collect(Collectors.toList());
+        }
+        // 按ABC分类过滤
+        if (abcClass != null && !abcClass.isEmpty()) {
+            final String abc = abcClass;
+            result = result.stream()
+                    .filter(m -> abc.equals(m.getAbcClass()))
+                    .collect(Collectors.toList());
+        }
+        // 按库存状态过滤
+        if (stockStatus != null && !stockStatus.isEmpty()) {
+            final String status = stockStatus;
+            result = result.stream()
+                    .filter(m -> status.equals(m.getStockStatus()))
+                    .collect(Collectors.toList());
+        }
+
+        // 记录总数
+        long total = result.size();
+
+        // 应用分页
+        if (page != null && limit != null && limit > 0) {
+            int start = (int) ((page - 1) * limit);
+            int end = (int) Math.min(start + limit, result.size());
+            if (start < result.size()) {
+                result = result.subList(start, end);
+            } else {
+                result = new java.util.ArrayList<>();
+            }
+        }
+
+        return PageResult.of(result, total);
     }
 
     @Override
@@ -185,8 +295,15 @@ public class MaterialServiceImpl implements MaterialService {
 
     @Override
     public List<MaterialVO> getNeedReorderMaterials() {
-        List<Material> materials = materialMapper.selectNeedReorderMaterials();
+        // 获取所有状态正常的物资，然后通过算法计算是否需要补货
+        QueryWrapper<Material> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("status", 1);
+        List<Material> materials = materialMapper.selectList(queryWrapper);
         return materials.stream()
+                .filter(material -> {
+                    int reorderPoint = calculateReorderPoint(material.getId());
+                    return material.getCurrentStock() <= reorderPoint;
+                })
                 .map(this::convertToVO)
                 .collect(Collectors.toList());
     }
@@ -291,5 +408,27 @@ public class MaterialServiceImpl implements MaterialService {
         }
 
         return vo;
+    }
+
+    @Override
+    public List<String> getAllCategories() {
+        List<Material> materials = materialMapper.selectList(null);
+        return materials.stream()
+                .map(Material::getCategory)
+                .filter(c -> c != null && !c.isEmpty())
+                .distinct()
+                .sorted()
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<String> getAllCodes() {
+        List<Material> materials = materialMapper.selectList(null);
+        return materials.stream()
+                .map(Material::getCode)
+                .filter(c -> c != null && !c.isEmpty())
+                .distinct()
+                .sorted()
+                .collect(Collectors.toList());
     }
 }

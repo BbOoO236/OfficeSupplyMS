@@ -3,6 +3,7 @@ package com.officesupplyms.controller;
 import com.officesupplyms.model.dto.ApplicationDTO;
 import com.officesupplyms.model.dto.ApproveDTO;
 import com.officesupplyms.model.vo.ApplicationVO;
+import com.officesupplyms.model.vo.PageResult;
 import com.officesupplyms.service.ApplicationService;
 import com.officesupplyms.utils.Result;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,11 +34,39 @@ public class ApplicationController {
     }
 
     /**
+     * 更新申领单（编辑）
+     */
+    @PutMapping("/{applicationId}")
+    public Result<ApplicationVO> updateApplication(@PathVariable Long applicationId,
+                                                  @RequestBody ApplicationDTO applicationDTO) {
+        return Result.success("更新成功", applicationService.updateApplication(applicationId, applicationDTO));
+    }
+
+    /**
+     * 撤销申领单
+     */
+    @PutMapping("/{applicationId}/cancel")
+    public Result<Void> cancelApplication(@PathVariable Long applicationId) {
+        boolean success = applicationService.cancelApplication(applicationId);
+        return success ? Result.<Void>success("撤销成功") : Result.<Void>error("撤销失败");
+    }
+
+    /**
      * 审批申领单
      */
     @PutMapping("/approve")
     public Result<ApplicationVO> approveApplication(@Validated @RequestBody ApproveDTO approveDTO) {
         return Result.success("审批操作完成", applicationService.approveApplication(approveDTO));
+    }
+
+    /**
+     * 回退申领单状态
+     */
+    @PutMapping("/{applicationId}/rollback")
+    public Result<Void> rollbackApplication(@PathVariable Long applicationId,
+                                           @RequestParam String toStatus) {
+        boolean success = applicationService.rollbackApplication(applicationId, toStatus);
+        return success ? Result.<Void>success("状态回退成功") : Result.<Void>error("状态回退失败");
     }
 
     /**
@@ -68,16 +97,27 @@ public class ApplicationController {
      * 查询当前用户的申领记录
      */
     @GetMapping("/my")
-    public Result<List<ApplicationVO>> getMyApplications() {
-        return Result.success(applicationService.getMyApplications());
+    public Result<PageResult<ApplicationVO>> getMyApplications(
+            @RequestParam(required = false) String applicationNo,
+            @RequestParam(required = false) String materialName,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) Long page,
+            @RequestParam(required = false) Long limit) {
+        return Result.success(applicationService.getMyApplications(applicationNo, materialName, status, page, limit));
     }
 
     /**
      * 查询所有申领记录（管理员）
      */
     @GetMapping("/all")
-    public Result<List<ApplicationVO>> getAllApplications() {
-        return Result.success(applicationService.getAllApplications());
+    public Result<PageResult<ApplicationVO>> getAllApplications(
+            @RequestParam(required = false) String applicationNo,
+            @RequestParam(required = false) String materialName,
+            @RequestParam(required = false) String userName,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) Long page,
+            @RequestParam(required = false) Long limit) {
+        return Result.success(applicationService.getAllApplications(applicationNo, materialName, userName, status, page, limit));
     }
 
     /**
@@ -146,5 +186,14 @@ public class ApplicationController {
                                          @RequestParam Long materialId,
                                          @RequestParam Integer quantity) {
         return Result.success(applicationService.detectAnomaly(userId, materialId, quantity));
+    }
+
+    /**
+     * 根据用户ID和物资ID查询历史申领记录
+     */
+    @GetMapping("/user-material")
+    public Result<List<ApplicationVO>> getByUserAndMaterial(@RequestParam Long userId,
+                                                            @RequestParam Long materialId) {
+        return Result.success(applicationService.getByUserAndMaterial(userId, materialId));
     }
 }

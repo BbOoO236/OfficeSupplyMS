@@ -32,17 +32,20 @@ service.interceptors.response.use(
 
     // 如果返回的状态码不是200，则判断为错误
     if (res.code !== 200) {
-      Message({
-        message: res.message || 'Error',
-        type: 'error',
-        duration: 5 * 1000
-      })
-
-      // 401: 未登录或token过期
+      // 401: 未登录或token过期，跳转到登录页面
       if (res.code === 401) {
-        // 跳转到登录页面
         store.dispatch('logout').then(() => {
           router.push('/login')
+        })
+      }
+      // 403: 权限不足、角色错误、用户禁用等，不弹系统提示，由页面自己处理
+      // 404: 资源不存在，不弹系统提示
+      // 其他错误弹系统提示
+      if (res.code !== 401 && res.code !== 403 && res.code !== 404) {
+        Message({
+          message: res.message || 'Error',
+          type: 'error',
+          duration: 5 * 1000
         })
       }
 
@@ -52,12 +55,7 @@ service.interceptors.response.use(
     }
   },
   error => {
-    console.log('err' + error) // for debug
-    Message({
-      message: error.message,
-      type: 'error',
-      duration: 5 * 1000
-    })
+    // 网络错误等，不弹系统提示
     return Promise.reject(error)
   }
 )

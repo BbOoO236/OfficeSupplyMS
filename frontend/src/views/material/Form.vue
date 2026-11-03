@@ -1,18 +1,46 @@
 <template>
   <div class="app-container">
-    <el-card>
-      <div slot="header" class="clearfix">
-        <span>{{ formTitle }}</span>
+    <el-card class="form-card">
+      <div slot="header" class="form-header">
+        <span class="form-title">{{ formTitle }}</span>
       </div>
       <el-form ref="form" :model="form" :rules="rules" label-width="120px">
         <el-form-item label="物资编码" prop="code">
-          <el-input v-model="form.code" placeholder="请输入物资编码" />
+          <el-select
+            v-model="form.code"
+            placeholder="请选择或输入物资编码"
+            filterable
+            allow-create
+            default-first-option
+            style="width: 100%;"
+          >
+            <el-option
+              v-for="code in codeOptions"
+              :key="code"
+              :label="code"
+              :value="code"
+            />
+          </el-select>
         </el-form-item>
         <el-form-item label="物资名称" prop="name">
           <el-input v-model="form.name" placeholder="请输入物资名称" />
         </el-form-item>
         <el-form-item label="物资类别" prop="category">
-          <el-input v-model="form.category" placeholder="请输入物资类别" />
+          <el-select
+            v-model="form.category"
+            placeholder="请选择或输入物资类别"
+            filterable
+            allow-create
+            default-first-option
+            style="width: 100%;"
+          >
+            <el-option
+              v-for="cat in categoryOptions"
+              :key="cat"
+              :label="cat"
+              :value="cat"
+            />
+          </el-select>
         </el-form-item>
         <el-form-item label="规格" prop="specification">
           <el-input v-model="form.specification" placeholder="请输入规格" />
@@ -25,28 +53,8 @@
             <template slot="append">元</template>
           </el-input>
         </el-form-item>
-        <el-form-item label="采购提前期" prop="leadTime">
-          <el-input-number v-model="form.leadTime" :min="1" placeholder="请输入采购提前期" />
-          <span style="margin-left: 10px; color: #909399;">天</span>
-        </el-form-item>
-        <el-form-item label="安全系数" prop="safetyFactor">
-          <el-input-number v-model="form.safetyFactor" :min="0.1" :step="0.1" placeholder="请输入安全系数" />
-        </el-form-item>
         <el-form-item label="当前库存" prop="currentStock">
           <el-input-number v-model="form.currentStock" :min="0" placeholder="请输入当前库存" />
-        </el-form-item>
-        <el-form-item label="最低库存" prop="minStock">
-          <el-input-number v-model="form.minStock" :min="0" placeholder="请输入最低库存" />
-        </el-form-item>
-        <el-form-item label="最高库存" prop="maxStock">
-          <el-input-number v-model="form.maxStock" :min="0" placeholder="请输入最高库存" />
-        </el-form-item>
-        <el-form-item label="ABC分类" prop="abcClass">
-          <el-select v-model="form.abcClass" placeholder="请选择ABC分类">
-            <el-option label="A类（重要物资）" value="A" />
-            <el-option label="B类（一般物资）" value="B" />
-            <el-option label="C类（次要物资）" value="C" />
-          </el-select>
         </el-form-item>
         <el-form-item label="状态" prop="status">
           <el-radio-group v-model="form.status">
@@ -86,15 +94,12 @@ export default {
         specification: '',
         unit: '',
         unitPrice: '',
-        leadTime: 7,
-        safetyFactor: 1.5,
         currentStock: 0,
-        minStock: 10,
-        maxStock: 100,
-        abcClass: 'C',
         status: 1,
         remark: ''
       },
+      categoryOptions: [],
+      codeOptions: [],
       rules: {
         code: [
           { required: true, message: '请输入物资编码', trigger: 'blur' }
@@ -114,11 +119,20 @@ export default {
     }
   },
   created() {
+    this.fetchOptions()
     if (this.$route.params.id) {
       this.fetchData()
     }
   },
   methods: {
+    fetchOptions() {
+      materialApi.getMaterialCategories().then(response => {
+        this.categoryOptions = response.data || []
+      })
+      materialApi.getMaterialCodes().then(response => {
+        this.codeOptions = response.data || []
+      })
+    },
     fetchData() {
       const id = this.$route.params.id
       materialApi.getMaterialById(id).then(response => {
@@ -133,12 +147,16 @@ export default {
             materialApi.updateMaterial(this.form.id, this.form).then(response => {
               this.$message.success('更新成功')
               this.$router.push('/materials')
+            }).catch(error => {
+              this.$message.error('更新失败：' + (error.message || '未知错误'))
             })
           } else {
             // 新增
             materialApi.createMaterial(this.form).then(response => {
               this.$message.success('创建成功')
               this.$router.push('/materials')
+            }).catch(error => {
+              this.$message.error('创建失败：' + (error.message || '未知错误'))
             })
           }
         }
@@ -152,7 +170,34 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+@import '@/styles/variables.scss';
+
 .app-container {
-  padding: 20px;
+  padding: 0;
+}
+
+.form-card {
+  background: $surface-color;
+  border-radius: $border-radius-xl;
+  border: 1px solid $border-color;
+  padding: 24px;
+
+  .form-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: $text-primary;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid $border-color;
+  }
+}
+
+::v-deep .el-form-item__label {
+  font-weight: 500;
+  color: $text-primary;
+}
+
+::v-deep .el-input-number .el-input__inner {
+  text-align: left;
 }
 </style>

@@ -2,7 +2,6 @@ package com.officesupplyms.model.dto;
 
 import lombok.Data;
 
-import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
 /**
@@ -20,4 +19,6 @@ public class InventoryCheckDTO {
     private String reason; // 差异原因
 
     private String remark;
+
+    private String adjustmentRemark; // 调整备注
 }

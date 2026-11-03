@@ -10,7 +10,29 @@
         <span>ABC分类计算</span>
         <el-button style="float: right; padding: 3px 0" type="text" @click="refreshData">刷新数据</el-button>
       </div>
-      <div>
+      <div class="filter-container">
+        <el-form :inline="true" :model="filterForm" class="demo-form-inline">
+          <el-form-item label="物资名称">
+            <el-input v-model="filterForm.materialName" placeholder="请输入物资名称" clearable />
+          </el-form-item>
+          <el-form-item label="物资编码">
+            <el-input v-model="filterForm.materialCode" placeholder="请输入物资编码" clearable />
+          </el-form-item>
+          <el-form-item label="ABC分类">
+            <el-select v-model="filterForm.abcClass" placeholder="请选择分类" clearable>
+              <el-option label="A类" value="A" />
+              <el-option label="B类" value="B" />
+              <el-option label="C类" value="C" />
+            </el-select>
+          </el-form-item>
+          <el-form-item>
+            <el-button type="primary" @click="handleFilter">筛选</el-button>
+            <el-button @click="resetFilter">重置</el-button>
+          </el-form-item>
+        </el-form>
+      </div>
+
+      <div style="margin-top: 15px;">
         <el-button type="primary" @click="calculateAbcClassification" :loading="loading">开始计算</el-button>
         <el-button @click="showChart = !showChart">{{ showChart ? '隐藏图表' : '显示图表' }}</el-button>
       </div>
@@ -21,7 +43,7 @@
 
       <el-table
         v-loading="tableLoading"
-        :data="tableData"
+        :data="paginatedData"
         border
         fit
         highlight-current-row
@@ -48,22 +70,60 @@
         </el-table-column>
         <el-table-column label="建议管理策略" prop="managementStrategy" align="center" />
       </el-table>
+      <pagination
+        v-show="filteredData.length > 0"
+        :total="filteredData.length"
+        :page.sync="listQuery.page"
+        :limit.sync="listQuery.limit"
+        @pagination="handlePageChange"
+      />
     </el-card>
   </div>
 </template>
 
 <script>
 import * as algorithmApi from '@/api/algorithm'
+import Pagination from '@/components/Pagination'
 
 export default {
   name: 'AlgorithmABC',
+  components: { Pagination },
   data() {
     return {
       loading: false,
       tableLoading: false,
       showChart: true,
       tableData: [],
+      filterForm: {
+        materialName: '',
+        materialCode: '',
+        abcClass: ''
+      },
+      listQuery: {
+        page: 1,
+        limit: 10
+      },
       chart: null
+    }
+  },
+  computed: {
+    filteredData() {
+      let data = this.tableData
+      if (this.filterForm.materialName) {
+        data = data.filter(item => item.materialName && item.materialName.toLowerCase().includes(this.filterForm.materialName.toLowerCase()))
+      }
+      if (this.filterForm.materialCode) {
+        data = data.filter(item => item.materialCode && item.materialCode.toLowerCase().includes(this.filterForm.materialCode.toLowerCase()))
+      }
+      if (this.filterForm.abcClass) {
+        data = data.filter(item => item.abcClass === this.filterForm.abcClass)
+      }
+      return data
+    },
+    paginatedData() {
+      const start = (this.listQuery.page - 1) * this.listQuery.limit
+      const end = start + this.listQuery.limit
+      return this.filteredData.slice(start, end)
     }
   },
   mounted() {
@@ -71,6 +131,15 @@ export default {
     this.$nextTick(() => {
       this.initChart()
     })
+  },
+  watch: {
+    showChart(newVal) {
+      if (newVal) {
+        this.$nextTick(() => {
+          this.initChart()
+        })
+      }
+    }
   },
   beforeDestroy() {
     if (this.chart) {
@@ -93,16 +162,34 @@ export default {
       algorithmApi.calculateAbcClassification().then(response => {
         this.$message.success('ABC分类计算完成')
         this.tableData = response.data
+        this.listQuery.page = 1
         this.updateChart()
         this.loading = false
       }).catch(() => {
         this.loading = false
       })
     },
+    handleFilter() {
+      this.listQuery.page = 1
+    },
+    resetFilter() {
+      this.filterForm = {
+        materialName: '',
+        materialCode: '',
+        abcClass: ''
+      }
+      this.listQuery.page = 1
+    },
+    handlePageChange() {
+      // Just trigger re-render of paginatedData
+    },
     initChart() {
       if (!this.$echarts) return
       const chartDom = document.getElementById('abcChart')
       if (!chartDom) return
+      if (this.chart) {
+        this.chart.dispose()
+      }
       this.chart = this.$echarts.init(chartDom)
       this.updateChart()
     },
@@ -180,5 +267,11 @@ export default {
 }
 .box-card {
   margin-top: 20px;
+}
+.filter-container {
+  background: #f5f7fa;
+  border-radius: 4px;
+  padding: 15px;
+  margin-bottom: 15px;
 }
 </style>

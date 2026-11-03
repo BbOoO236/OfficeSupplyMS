@@ -11,7 +11,7 @@ CREATE TABLE `user` (
   `username` VARCHAR(50) NOT NULL COMMENT '用户名',
   `password` VARCHAR(100) NOT NULL COMMENT '密码',
   `real_name` VARCHAR(50) NOT NULL COMMENT '真实姓名',
-  `role` VARCHAR(20) NOT NULL DEFAULT 'USER' COMMENT '角色: USER-普通用户, ADMIN-管理员',
+  `role` VARCHAR(20) NOT NULL DEFAULT 'employee' COMMENT '角色: admin-管理员, employee-员工',
   `status` TINYINT NOT NULL DEFAULT 1 COMMENT '状态: 1-正常, 0-禁用',
   `email` VARCHAR(100) COMMENT '邮箱',
   `phone` VARCHAR(20) COMMENT '手机号',
@@ -189,12 +189,12 @@ CREATE TABLE `report_snapshot` (
 
 -- 初始化管理员用户（密码：admin123）
 INSERT INTO `user` (`username`, `password`, `real_name`, `role`, `status`, `email`, `phone`, `department`) VALUES
-('admin', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iK6roS6D4YVqO09tJ6R7DQc6OFG2', '系统管理员', 'ADMIN', 1, 'admin@example.com', '13800138000', 'IT部');
+('admin', '0192023a7bbd73250516f069df18b500', '系统管理员', 'admin', 1, 'admin@example.com', '13800138000', 'IT部');
 
 -- 初始化普通用户（密码：user123）
 INSERT INTO `user` (`username`, `password`, `real_name`, `role`, `status`, `email`, `phone`, `department`) VALUES
-('user1', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iK6roS6D4YVqO09tJ6R7DQc6OFG2', '张三', 'USER', 1, 'zhangsan@example.com', '13800138001', '行政部'),
-('user2', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iK6roS6D4YVqO09tJ6R7DQc6OFG2', '李四', 'USER', 1, 'lisi@example.com', '13800138002', '财务部');
+('user1', '6ad14ba9986e3615423dfca256d04e3f', '张三', 'employee', 1, 'zhangsan@example.com', '13800138001', '行政部'),
+('user2', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iK6roS6D4YVqO09tJ6R7DQc6OFG2', '李四', 'employee', 1, 'lisi@example.com', '13800138002', '财务部');
 
 -- 初始化示例物资数据
 INSERT INTO `material` (`code`, `name`, `category`, `specification`, `unit`, `unit_price`, `lead_time`, `safety_factor`, `current_stock`, `min_stock`, `max_stock`) VALUES
@@ -264,3 +264,7 @@ LEFT JOIN user u ON a.user_id = u.id
 LEFT JOIN user au ON a.approve_user_id = au.id
 LEFT JOIN user ou ON a.outbound_user_id = ou.id
 LEFT JOIN material m ON a.material_id = m.id;
+
+-- 更新现有数据的role字段（如果已有数据）
+UPDATE `user` SET `role` = 'admin' WHERE `role` = 'ADMIN';
+UPDATE `user` SET `role` = 'employee' WHERE `role` = 'USER';

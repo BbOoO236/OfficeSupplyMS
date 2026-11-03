@@ -25,7 +25,7 @@
             <span class="algorithm-title">需求预测</span>
           </div>
           <div class="algorithm-icon">
-            <i class="el-icon-trend-charts" />
+            <i class="el-icon-data-analysis" />
           </div>
           <div class="algorithm-description">
             基于历史消耗数据预测未来需求，辅助采购决策。

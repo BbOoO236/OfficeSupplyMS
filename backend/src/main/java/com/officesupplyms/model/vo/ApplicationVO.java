@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * 申领单VO
@@ -23,12 +24,13 @@ public class ApplicationVO {
     private String materialName; // 物资名称
     private String materialCode; // 物资编码
     private String materialUnit; // 物资单位
+    private Integer materialStock; // 物资当前库存
 
     private Integer quantity; // 申领数量
 
     private String purpose; // 用途
 
-    private String status; // PENDING, APPROVED, REJECTED, TO_BE_OUTBOUND, COMPLETED
+    private String status; // PENDING, APPROVED, REJECTED, TO_BE_OUTBOUND, OUTBOUND, CANCELLED
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime applyTime; // 申请时间
@@ -52,4 +54,6 @@ public class ApplicationVO {
     private String abnormalReason; // 异常原因
 
     private String remark;
+
+    private List<ApplicationHistoryVO> historyList; // 操作历史列表
 }

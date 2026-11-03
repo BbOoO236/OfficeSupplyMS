@@ -24,7 +24,7 @@ public class StockOut {
 
     private Integer quantity; // 出库数量
 
-    private String type; // APPLICATION, DIRECT, SCRAP
+    private String type; // APPLICATION, TRANSFER, LOSS, OTHER
 
     private Long applicationId; // 关联申领单ID
 

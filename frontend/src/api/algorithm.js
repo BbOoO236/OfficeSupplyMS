@@ -73,6 +73,27 @@ export function getForecastVsActualComparison(materialId) {
   })
 }
 
+export function getDepartmentApplicationStats() {
+  return request({
+    url: '/algorithms/charts/department-application',
+    method: 'get'
+  })
+}
+
+export function getStockStatusDistribution() {
+  return request({
+    url: '/algorithms/charts/stock-status',
+    method: 'get'
+  })
+}
+
+export function getAnomalousApplications() {
+  return request({
+    url: '/algorithms/anomalies',
+    method: 'get'
+  })
+}
+
 export function scheduleAbcClassification() {
   return request({
     url: '/algorithms/schedule/abc-classification',

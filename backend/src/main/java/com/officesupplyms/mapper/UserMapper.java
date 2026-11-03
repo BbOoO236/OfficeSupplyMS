@@ -15,10 +15,16 @@ import java.util.List;
 public interface UserMapper extends BaseMapper<User> {
 
     /**
-     * 根据用户名查询用户
+     * 根据用户名查询用户（不限制状态，用于登录验证）
      */
-    @Select("SELECT * FROM user WHERE username = #{username} AND status = 1")
+    @Select("SELECT * FROM user WHERE username = #{username}")
     User selectByUsername(@Param("username") String username);
+
+    /**
+     * 根据用户名查询密码(仅用于登录验证）
+     */
+    @Select("SELECT password FROM user WHERE username = #{username} AND status = 1")
+    String getPassword(@Param("username") String username);
 
     /**
      * 查询所有用户（分页）

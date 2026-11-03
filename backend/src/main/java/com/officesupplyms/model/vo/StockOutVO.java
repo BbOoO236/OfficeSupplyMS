@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * 出库单VO
@@ -22,7 +23,7 @@ public class StockOutVO {
 
     private Integer quantity; // 出库数量
 
-    private String type; // APPLICATION, DIRECT, SCRAP
+    private String type; // APPLICATION, TRANSFER, LOSS, OTHER
 
     private Long applicationId; // 关联申领单ID
     private String applicationNo; // 申领单号
@@ -36,4 +37,6 @@ public class StockOutVO {
     private String reason; // 出库原因
 
     private String remark;
+
+    private List<StockOutHistoryVO> historyList; // 操作历史
 }

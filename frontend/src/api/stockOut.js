@@ -73,3 +73,18 @@ export function sumQuantityByMaterialId(materialId) {
     method: 'get'
   })
 }
+
+export function deleteStockOut(id) {
+  return request({
+    url: `/stock-outs/${id}`,
+    method: 'delete'
+  })
+}
+
+export function updateStockOut(id, data) {
+  return request({
+    url: `/stock-outs/${id}`,
+    method: 'put',
+    data
+  })
+}

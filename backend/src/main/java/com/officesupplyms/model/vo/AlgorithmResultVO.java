@@ -79,6 +79,7 @@ public class AlgorithmResultVO {
     public static class ChartData {
         private List<String> labels; // X轴标签
         private List<BigDecimal> values; // 数据值
+        private List<Integer> counts; // 实际数量（用于ABC分类显示百分比和数量）
         private String title; // 图表标题
         private String unit; // 单位
     }
@@ -132,6 +133,7 @@ public class AlgorithmResultVO {
         private String applicationNo;
         private Long userId;
         private String userName;
+        private String userDepartment;
         private Long materialId;
         private String materialName;
         private String materialCode;
@@ -144,6 +146,8 @@ public class AlgorithmResultVO {
         private BigDecimal detectedValue;
         private String normalRange;
         private BigDecimal deviation;
+        private String abnormalReason;
+        private String applyTime;
         private String suggestedAction;
         private String detectionTime;
     }

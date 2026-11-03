@@ -57,4 +57,22 @@ public interface InventoryCheckMapper extends BaseMapper<InventoryCheck> {
      */
     @Select("SELECT * FROM inventory_check ORDER BY check_time DESC LIMIT #{limit}")
     List<InventoryCheck> selectRecent(@Param("limit") Integer limit);
+
+    /**
+     * 查询指定物资的最后一条无差异记录
+     */
+    @Select("SELECT * FROM inventory_check WHERE material_id = #{materialId} AND difference = 0 ORDER BY check_time DESC LIMIT 1")
+    InventoryCheck selectLastNoDifferenceByMaterialId(@Param("materialId") Long materialId);
+
+    /**
+     * 查询指定物资的所有有差异记录
+     */
+    @Select("SELECT * FROM inventory_check WHERE material_id = #{materialId} AND difference != 0 ORDER BY check_time DESC")
+    List<InventoryCheck> selectWithDifferenceByMaterialId(@Param("materialId") Long materialId);
+
+    /**
+     * 查询指定物资的最后一条有差异记录
+     */
+    @Select("SELECT * FROM inventory_check WHERE material_id = #{materialId} AND difference != 0 ORDER BY check_time DESC LIMIT 1")
+    InventoryCheck selectLastWithDifferenceByMaterialId(@Param("materialId") Long materialId);
 }

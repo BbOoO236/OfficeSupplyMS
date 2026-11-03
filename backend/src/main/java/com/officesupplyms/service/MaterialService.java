@@ -2,6 +2,7 @@ package com.officesupplyms.service;
 
 import com.officesupplyms.model.dto.MaterialDTO;
 import com.officesupplyms.model.vo.MaterialVO;
+import com.officesupplyms.model.vo.PageResult;
 
 import java.util.List;
 
@@ -36,9 +37,9 @@ public interface MaterialService {
     MaterialVO getMaterialByCode(String code);
 
     /**
-     * 查询所有物资
+     * 查询所有物资（支持搜索过滤）
      */
-    List<MaterialVO> getAllMaterials();
+    PageResult<MaterialVO> getAllMaterials(String name, String code, String category, String abcClass, String stockStatus, Long page, Long limit);
 
     /**
      * 根据类别查询物资
@@ -89,4 +90,19 @@ public interface MaterialService {
      * 计算物资的补货点
      */
     Integer calculateReorderPoint(Long materialId);
+
+    /**
+     * 更新物资状态（启用/停用）
+     */
+    boolean updateMaterialStatus(Long materialId, Integer status);
+
+    /**
+     * 获取所有物资类别（下拉框用）
+     */
+    List<String> getAllCategories();
+
+    /**
+     * 获取所有物资编码（下拉框用）
+     */
+    List<String> getAllCodes();
 }

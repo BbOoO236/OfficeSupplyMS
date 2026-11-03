@@ -1,2 +1,75 @@
+# Dependencies and package manager caches
 node_modules/
+.npm/
+.pnpm-store/
+.yarn/
+
+# Frontend build output and caches
+dist/
+build/
+coverage/
+frontend/.cache/
+frontend/.eslintcache
+
+# Backend build output
+target/
+*.class
+dependency-reduced-pom.xml
+
+# Logs and runtime files
+*.log
+*.log.*
+logs/
+backend/logs/
+backend/upload/
+backend/uploads/
+
+# Environment and local secret configuration
+.env
+.env.*
+!.env.example
+!.env.*.example
+application-local.yml
+application-local.yaml
+application-secret.yml
+application-secret.yaml
+*.jks
+*.keystore
+*.p12
+
+# IDE and editor settings
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+*.swp
+*.swo
+*~
+
+# Git worktrees and AI assistant-local files
 .worktrees/
+.agents/
+.claude/
+
+# Temporary extracted/build artifacts
+docx_extracted/
+*.tmp
+*.temp
+
+# Personal notes, prototypes, and archives
+data.txt
+修改.txt
+需求.txt
+产品经理简历项目分析.md
+start-claude.bat
+thesis.zip
+*.zip
+uidemo/
+docs/meeting/
+docs/superpowers/
+
+# Operating system files
+.DS_Store
+Thumbs.db
+desktop.ini

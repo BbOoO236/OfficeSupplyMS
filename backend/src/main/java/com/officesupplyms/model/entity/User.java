@@ -24,9 +24,14 @@ public class User {
 
     private String realName;
 
-    private String role; // USER, ADMIN
+    private String role; // admin, employee
 
     private Integer status; // 1-正常, 0-禁用
+
+    private Integer errorCount; // 密码连续错误次数
+
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime lockUntil; // 账户锁定截止时间
 
     private String email;
 

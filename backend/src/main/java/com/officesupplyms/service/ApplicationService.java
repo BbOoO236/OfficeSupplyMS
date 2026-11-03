@@ -3,6 +3,7 @@ package com.officesupplyms.service;
 import com.officesupplyms.model.dto.ApplicationDTO;
 import com.officesupplyms.model.dto.ApproveDTO;
 import com.officesupplyms.model.vo.ApplicationVO;
+import com.officesupplyms.model.vo.PageResult;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -19,9 +20,24 @@ public interface ApplicationService {
     ApplicationVO createApplication(ApplicationDTO applicationDTO);
 
     /**
+     * 更新申领单（编辑）
+     */
+    ApplicationVO updateApplication(Long applicationId, ApplicationDTO applicationDTO);
+
+    /**
+     * 撤销申领单
+     */
+    boolean cancelApplication(Long applicationId);
+
+    /**
      * 审批申领单
      */
     ApplicationVO approveApplication(ApproveDTO approveDTO);
+
+    /**
+     * 回退申领单状态
+     */
+    boolean rollbackApplication(Long applicationId, String toStatus);
 
     /**
      * 出库操作
@@ -41,12 +57,12 @@ public interface ApplicationService {
     /**
      * 查询当前用户的申领记录
      */
-    List<ApplicationVO> getMyApplications();
+    PageResult<ApplicationVO> getMyApplications(String applicationNo, String materialName, String status, Long page, Long limit);
 
     /**
      * 查询所有申领记录（管理员）
      */
-    List<ApplicationVO> getAllApplications();
+    PageResult<ApplicationVO> getAllApplications(String applicationNo, String materialName, String userName, String status, Long page, Long limit);
 
     /**
      * 根据状态查询申领记录
@@ -87,4 +103,9 @@ public interface ApplicationService {
      * 检测申领是否异常（3σ原则）
      */
     boolean detectAnomaly(Long userId, Long materialId, Integer quantity);
+
+    /**
+     * 根据用户ID和物资ID查询历史申领记录
+     */
+    List<ApplicationVO> getByUserAndMaterial(Long userId, Long materialId);
 }

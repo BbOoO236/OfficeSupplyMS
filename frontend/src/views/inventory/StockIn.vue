@@ -37,8 +37,9 @@
     </div>
 
     <div class="operation-container">
-      <el-button type="primary" icon="el-icon-plus" @click="handleCreate">新建入库单</el-button>
+      <el-button v-if="!filterMaterialId" type="primary" icon="el-icon-plus" @click="handleCreate">新建入库单</el-button>
       <el-button type="success" icon="el-icon-refresh" @click="getList">刷新</el-button>
+      <el-button v-if="filterMaterialId" type="info" icon="el-icon-back" @click="goBack">返回物资列表</el-button>
     </div>
 
     <el-table
@@ -94,10 +95,10 @@
           <span>{{ row.remark || '-' }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="操作" align="center" width="150" class-name="small-padding fixed-width">
+      <el-table-column label="操作" align="center" width="180" class-name="small-padding fixed-width">
         <template slot-scope="{row}">
+          <el-button type="primary" size="mini" @click="handleEdit(row)">编辑</el-button>
           <el-button type="info" size="mini" @click="handleView(row)">查看</el-button>
-          <el-button type="danger" size="mini" @click="handleDelete(row)">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -108,6 +109,7 @@
       :page.sync="listQuery.page"
       :limit.sync="listQuery.limit"
       @pagination="getList"
+      @current-change="handlePageChange"
     />
 
     <!-- 新建/编辑入库单对话框 -->
@@ -160,6 +162,48 @@
         <el-button type="primary" @click="submitForm">确认</el-button>
       </div>
     </el-dialog>
+
+    <!-- 查看详情对话框 -->
+    <el-dialog title="入库单详情" :visible.sync="detailVisible" width="750px">
+      <div v-loading="detailLoading" class="detail-content">
+        <el-descriptions :column="2" border>
+          <el-descriptions-item label="入库单号">{{ currentStockIn.stockInNo }}</el-descriptions-item>
+          <el-descriptions-item label="物资编码">{{ currentStockIn.materialCode }}</el-descriptions-item>
+          <el-descriptions-item label="物资名称">{{ currentStockIn.materialName }}</el-descriptions-item>
+          <el-descriptions-item label="物资单位">{{ currentStockIn.materialUnit }}</el-descriptions-item>
+          <el-descriptions-item label="入库数量">{{ currentStockIn.quantity }}</el-descriptions-item>
+          <el-descriptions-item label="入库单价">¥{{ currentStockIn.unitPrice }}</el-descriptions-item>
+          <el-descriptions-item label="入库金额">¥{{ currentStockIn.totalAmount }}</el-descriptions-item>
+          <el-descriptions-item label="入库时间">{{ currentStockIn.inTime }}</el-descriptions-item>
+          <el-descriptions-item label="操作员">{{ currentStockIn.operatorName }}</el-descriptions-item>
+          <el-descriptions-item label="备注" :span="2">{{ currentStockIn.remark || '-' }}</el-descriptions-item>
+        </el-descriptions>
+
+        <!-- 操作历史 -->
+        <el-card class="history-card" shadow="never" v-if="stockInHistory.length > 0">
+          <div slot="header" class="card-header">
+            <span>操作历史</span>
+          </div>
+          <el-timeline>
+            <el-timeline-item
+              v-for="(item, index) in stockInHistory"
+              :key="index"
+              :timestamp="item.createTime"
+              type="primary"
+            >
+              <div class="timeline-content">
+                <div class="timeline-title">{{ item.actionText || item.action }}</div>
+                <div class="timeline-desc" v-if="item.operatorName">操作人：{{ item.operatorName }}</div>
+                <div class="timeline-desc" v-if="item.remark">备注：{{ item.remark }}</div>
+              </div>
+            </el-timeline-item>
+          </el-timeline>
+        </el-card>
+      </div>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="detailVisible = false">关闭</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -167,6 +211,7 @@
 import * as stockInApi from '@/api/stockIn'
 import * as materialApi from '@/api/material'
 import Pagination from '@/components/Pagination'
+import dayjs from 'dayjs' //format时间格式
 
 export default {
   name: 'StockIn',
@@ -200,23 +245,50 @@ export default {
         unitPrice: [{ required: true, message: '请输入入库单价', trigger: 'blur' }],
         stockInTime: [{ required: true, message: '请选择入库时间', trigger: 'blur' }]
       },
-      materialOptions: []
+      materialOptions: [],
+      filterMaterialId: null,
+      detailVisible: false,
+      detailLoading: false,
+      currentStockIn: {},
+      stockInHistory: []
     }
   },
   created() {
+    if (this.$route.query.materialId) {
+      this.filterMaterialId = parseInt(this.$route.query.materialId)
+      this.listQuery.materialId = this.filterMaterialId
+    }
     this.getList()
     this.loadMaterialOptions()
   },
   methods: {
-    getList() {
+    getList(pagination) {
+      if (pagination) {
+        this.listQuery.page = pagination.page
+        this.listQuery.limit = pagination.limit
+      }
       this.listLoading = true
-      stockInApi.getStockInList(this.listQuery).then(response => {
-        this.list = response.data.list || response.data
-        this.total = response.data.total || this.list.length
-        this.listLoading = false
-      }).catch(() => {
-        this.listLoading = false
-      })
+      if (this.filterMaterialId) {
+        stockInApi.getStockInsByMaterialId(this.filterMaterialId).then(response => {
+          this.list = response.data || []
+          this.total = this.list.length
+          this.listLoading = false
+        }).catch(() => {
+          this.listLoading = false
+        })
+      } else {
+        stockInApi.getStockInList(this.listQuery).then(response => {
+          this.list = response.data.list || response.data
+          this.total = response.data.total || this.list.length
+          this.listLoading = false
+        }).catch(() => {
+          this.listLoading = false
+        })
+      }
+    },
+    handlePageChange(page) {
+      this.listQuery.page = page
+      this.getList({ page: page, limit: this.listQuery.limit })
     },
     loadMaterialOptions() {
       materialApi.getMaterialList({ limit: 1000 }).then(response => {
@@ -254,7 +326,7 @@ export default {
         materialId: '',
         quantity: 1,
         unitPrice: '',
-        stockInTime: new Date().format('yyyy-MM-dd HH:mm:ss'),
+        stockInTime: dayjs().format('YYYY-MM-DD HH:mm:ss'),
         remark: ''
       }
       if (this.$refs.form) {
@@ -269,31 +341,57 @@ export default {
       }
     },
     handleView(row) {
-      this.$alert(`入库单详情：${JSON.stringify(row, null, 2)}`, '查看详情', {
-        confirmButtonText: '关闭'
+      this.detailLoading = true
+      this.currentStockIn = {}
+      this.stockInHistory = []
+      this.detailVisible = true
+      stockInApi.getStockInById(row.id).then(response => {
+        this.currentStockIn = response.data || {}
+        this.stockInHistory = response.data.historyList || []
+        this.detailLoading = false
+      }).catch(() => {
+        this.detailLoading = false
       })
     },
-    handleDelete(row) {
-      this.$confirm('确认删除该入库单吗？', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(() => {
-        // 假设有删除接口，这里暂时用提示
-        this.$message.success('删除成功')
-        this.getList()
-      })
+    handleEdit(row) {
+      this.dialogTitle = '编辑入库单'
+      this.form = {
+        id: row.id,
+        materialId: row.materialId,
+        quantity: row.quantity,
+        unitPrice: row.unitPrice,
+        stockInTime: row.inTime,
+        supplier: row.supplier,
+        remark: row.remark || ''
+      }
+      if (this.$refs.form) {
+        this.$refs.form.clearValidate()
+      }
+      this.dialogVisible = true
     },
     submitForm() {
       this.$refs.form.validate(valid => {
         if (valid) {
-          stockInApi.createStockIn(this.form).then(response => {
-            this.$message.success('入库单创建成功')
-            this.dialogVisible = false
-            this.getList()
-          })
+          if (this.form.id) {
+            // 更新
+            stockInApi.updateStockIn(this.form.id, this.form).then(() => {
+              this.$message.success('入库单更新成功')
+              this.dialogVisible = false
+              this.getList()
+            })
+          } else {
+            // 创建
+            stockInApi.createStockIn(this.form).then(() => {
+              this.$message.success('入库单创建成功')
+              this.dialogVisible = false
+              this.getList()
+            })
+          }
         }
       })
+    },
+    goBack() {
+      this.$router.push('/inventory')
     }
   }
 }
@@ -308,5 +406,24 @@ export default {
 }
 .operation-container {
   margin-bottom: 20px;
+}
+::v-deep .el-table .el-table__cell {
+  .el-button + .el-button {
+    margin-left: 8px;
+  }
+}
+.history-card {
+  margin-top: 20px;
+}
+.timeline-content {
+  .timeline-title {
+    font-weight: 500;
+    color: #303133;
+  }
+  .timeline-desc {
+    color: #909399;
+    font-size: 12px;
+    margin-top: 4px;
+  }
 }
 </style>

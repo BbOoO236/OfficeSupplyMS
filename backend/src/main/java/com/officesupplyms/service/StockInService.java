@@ -55,4 +55,14 @@ public interface StockInService {
      * 统计指定物资的总入库金额
      */
     java.math.BigDecimal sumAmountByMaterialId(Long materialId);
+
+    /**
+     * 删除入库单
+     */
+    boolean deleteStockIn(Long stockInId);
+
+    /**
+     * 更新入库单
+     */
+    StockInVO updateStockIn(Long stockInId, StockInDTO stockInDTO);
 }

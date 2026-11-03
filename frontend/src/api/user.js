@@ -45,3 +45,11 @@ export function resetPassword(id, newPassword) {
     params: { newPassword }
   })
 }
+
+export function changePassword(oldPassword, newPassword) {
+  return request({
+    url: '/users/change-password',
+    method: 'put',
+    params: { oldPassword, newPassword }
+  })
+}

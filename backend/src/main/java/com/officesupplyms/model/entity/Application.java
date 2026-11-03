@@ -28,7 +28,7 @@ public class Application {
 
     private String purpose; // 用途
 
-    private String status; // PENDING, APPROVED, REJECTED, TO_BE_OUTBOUND, COMPLETED
+    private String status; // PENDING, APPROVED, REJECTED, TO_BE_OUTBOUND, COMPLETED, CANCELLED
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime applyTime; // 申请时间

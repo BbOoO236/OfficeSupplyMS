@@ -45,6 +45,14 @@ export function deleteMaterial(id) {
   })
 }
 
+export function updateMaterialStatus(id, status) {
+  return request({
+    url: `/materials/${id}/status`,
+    method: 'put',
+    params: { status }
+  })
+}
+
 export function getLowStockMaterials() {
   return request({
     url: '/materials/low-stock',
@@ -92,6 +100,20 @@ export function calculateSafetyStock(materialId) {
 export function calculateReorderPoint(materialId) {
   return request({
     url: `/materials/${materialId}/reorder-point`,
+    method: 'get'
+  })
+}
+
+export function getMaterialCategories() {
+  return request({
+    url: '/materials/categories',
+    method: 'get'
+  })
+}
+
+export function getMaterialCodes() {
+  return request({
+    url: '/materials/codes',
     method: 'get'
   })
 }

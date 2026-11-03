@@ -20,17 +20,26 @@
         </el-form-item>
         <el-form-item label="角色">
           <el-select v-model="listQuery.role" placeholder="请选择" clearable>
-            <el-option label="普通用户" value="USER" />
-            <el-option label="管理员" value="ADMIN" />
+            <el-option label="普通用户" value="employee" />
+            <el-option label="管理员" value="admin" />
           </el-select>
         </el-form-item>
         <el-form-item label="部门">
-          <el-input
+          <el-select
             v-model="listQuery.department"
-            placeholder="请输入部门"
+            placeholder="请选择部门"
             clearable
-            @keyup.enter.native="handleFilter"
-          />
+            filterable
+            style="width: 160px;"
+            @change="handleFilter"
+          >
+            <el-option
+              v-for="dept in departmentList"
+              :key="dept.id"
+              :label="dept.name"
+              :value="dept.name"
+            />
+          </el-select>
         </el-form-item>
         <el-form-item label="状态">
           <el-select v-model="listQuery.status" placeholder="请选择" clearable>
@@ -70,8 +79,8 @@
       </el-table-column>
       <el-table-column label="角色" prop="role" align="center" width="100">
         <template slot-scope="{row}">
-          <el-tag :type="row.role === 'ADMIN' ? 'danger' : ''">
-            {{ row.role === 'ADMIN' ? '管理员' : '普通用户' }}
+          <el-tag :type="row.role === 'admin' ? 'danger' : ''">
+            {{ row.role === 'admin' ? '管理员' : '员工' }}
           </el-tag>
         </template>
       </el-table-column>
@@ -102,7 +111,7 @@
           <span>{{ row.createTime }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="操作" align="center" width="200" class-name="small-padding fixed-width">
+      <el-table-column label="操作" align="center" width="240" class-name="small-padding fixed-width">
         <template slot-scope="{row}">
           <el-button type="primary" size="mini" @click="handleUpdate(row)">编辑</el-button>
           <el-button v-if="row.status===1" size="mini" type="danger" @click="handleDisable(row)">禁用</el-button>
@@ -118,6 +127,7 @@
       :page.sync="listQuery.page"
       :limit.sync="listQuery.limit"
       @pagination="getList"
+      @current-change="handlePageChange"
     />
 
     <!-- 重置密码对话框 -->
@@ -140,6 +150,7 @@
 
 <script>
 import * as userApi from '@/api/user'
+import * as departmentApi from '@/api/department'
 import Pagination from '@/components/Pagination'
 
 export default {
@@ -157,6 +168,7 @@ export default {
       list: null,
       total: 0,
       listLoading: true,
+      departmentList: [],
       listQuery: {
         page: 1,
         limit: 20,
@@ -187,9 +199,14 @@ export default {
   },
   created() {
     this.getList()
+    this.fetchDepartments()
   },
   methods: {
-    getList() {
+    getList(pagination) {
+      if (pagination) {
+        this.listQuery.page = pagination.page
+        this.listQuery.limit = pagination.limit
+      }
       this.listLoading = true
       userApi.getUserList(this.listQuery).then(response => {
         this.list = response.data.list || response.data
@@ -198,6 +215,15 @@ export default {
       }).catch(() => {
         this.listLoading = false
       })
+    },
+    fetchDepartments() {
+      departmentApi.getDepartmentList().then(response => {
+        this.departmentList = response.data || []
+      })
+    },
+    handlePageChange(page) {
+      this.listQuery.page = page
+      this.getList({ page: page, limit: this.listQuery.limit })
     },
     handleFilter() {
       this.listQuery.page = 1
@@ -231,6 +257,8 @@ export default {
           this.$message.success('禁用成功')
           this.getList()
         })
+      }).catch(() => {
+        // 用户点击取消，不做任何操作
       })
     },
     handleEnable(row) {
@@ -243,6 +271,8 @@ export default {
           this.$message.success('启用成功')
           this.getList()
         })
+      }).catch(() => {
+        // 用户点击取消，不做任何操作
       })
     },
     handleResetPassword(row) {
@@ -278,13 +308,36 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+@import '@/styles/variables.scss';
+
 .filter-container {
-  padding-bottom: 20px;
-  .el-form-item {
+  background: $surface-color;
+  border-radius: $border-radius-xl;
+  padding: 20px;
+  margin-bottom: 16px;
+  border: 1px solid $border-color;
+
+  ::v-deep .el-form-item {
     margin-bottom: 0;
   }
 }
+
 .operation-container {
-  margin-bottom: 20px;
+  margin-bottom: 16px;
+}
+
+::v-deep .el-table {
+  border-radius: $border-radius-xl;
+  overflow: hidden;
+
+  th.el-table__cell {
+    background-color: $background-color !important;
+  }
+}
+
+::v-deep .el-table .el-table__cell {
+  .el-button + .el-button {
+    margin-left: 8px;
+  }
 }
 </style>

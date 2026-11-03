@@ -66,10 +66,11 @@ export function markAsAdjusted(checkId) {
   })
 }
 
-export function adjustStockByCheck(checkId) {
+export function adjustStockByCheck(checkId, actualQuantity, adjustmentRemark) {
   return request({
     url: `/inventory-checks/${checkId}/adjust-stock`,
-    method: 'put'
+    method: 'put',
+    data: { actualQuantity, adjustmentRemark }
   })
 }
 
@@ -84,6 +85,20 @@ export function getRecentInventoryChecks(limit = 10) {
 export function sumDifferenceByMaterialId(materialId) {
   return request({
     url: `/inventory-checks/material/${materialId}/total-difference`,
+    method: 'get'
+  })
+}
+
+export function getMaterialCheckSummaryList() {
+  return request({
+    url: '/inventory-checks/summary',
+    method: 'get'
+  })
+}
+
+export function getMaterialCheckSummary(materialId) {
+  return request({
+    url: `/inventory-checks/material/${materialId}/summary`,
     method: 'get'
   })
 }

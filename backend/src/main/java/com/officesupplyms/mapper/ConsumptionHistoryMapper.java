@@ -45,7 +45,22 @@ public interface ConsumptionHistoryMapper extends BaseMapper<ConsumptionHistory>
                                            @Param("endDate") LocalDate endDate);
 
     /**
-     * 统计物资的月消耗量
+     * 统计物资的月消耗量（使用日期范围）
+     */
+    @Select("SELECT DATE_FORMAT(record_date, '%Y-%m') as month, SUM(quantity) as totalQuantity " +
+            "FROM consumption_history " +
+            "WHERE material_id = #{materialId} " +
+            "AND record_date >= #{startDate} " +
+            "AND record_date < #{endDate} " +
+            "GROUP BY DATE_FORMAT(record_date, '%Y-%m') " +
+            "ORDER BY month")
+    @ResultType(MonthlyConsumption.class)
+    List<MonthlyConsumption> selectMonthlyConsumptionByDateRange(@Param("materialId") Long materialId,
+                                                     @Param("startDate") LocalDate startDate,
+                                                     @Param("endDate") LocalDate endDate);
+
+    /**
+     * 统计物资的月消耗量（使用最近N个月）
      */
     @Select("SELECT DATE_FORMAT(record_date, '%Y-%m') as month, SUM(quantity) as totalQuantity " +
             "FROM consumption_history " +
@@ -65,6 +80,14 @@ public interface ConsumptionHistoryMapper extends BaseMapper<ConsumptionHistory>
             "WHERE user_id = #{userId} AND material_id = #{materialId} AND type = 'APPLICATION'")
     UserMaterialStat selectUserMaterialStatistics(@Param("userId") Long userId,
                                                  @Param("materialId") Long materialId);
+
+    /**
+     * 获取某物资的历史申领统计数据（用于异常检测，按物资维度）
+     */
+    @Select("SELECT AVG(quantity) as mean, STDDEV_SAMP(quantity) as std_dev " +
+            "FROM consumption_history " +
+            "WHERE material_id = #{materialId} AND type = 'APPLICATION'")
+    UserMaterialStat selectMaterialStatistics(@Param("materialId") Long materialId);
 
     /**
      * 根据物资ID查询消耗记录

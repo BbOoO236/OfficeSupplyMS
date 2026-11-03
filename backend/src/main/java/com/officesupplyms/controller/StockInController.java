@@ -2,6 +2,7 @@ package com.officesupplyms.controller;
 
 import com.officesupplyms.model.dto.StockInDTO;
 import com.officesupplyms.model.vo.StockInVO;
+import com.officesupplyms.model.vo.PageResult;
 import com.officesupplyms.service.StockInService;
 import com.officesupplyms.utils.Result;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 入库管理控制器
@@ -47,11 +49,63 @@ public class StockInController {
     }
 
     /**
-     * 查询所有入库单
+     * 查询所有入库单（支持按入库单号、物资名称、时间范围过滤）
      */
     @GetMapping
-    public Result<List<StockInVO>> getAllStockIns() {
-        return Result.success(stockInService.getAllStockIns());
+    public Result<PageResult<StockInVO>> getAllStockIns(
+            @RequestParam(required = false) String stockInNo,
+            @RequestParam(required = false) String materialName,
+            @RequestParam(required = false) String materialCode,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime startTime,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime endTime,
+            @RequestParam(required = false) Long page,
+            @RequestParam(required = false) Long limit) {
+        List<StockInVO> stockIns = stockInService.getAllStockIns();
+        // 按入库单号过滤
+        if (stockInNo != null && !stockInNo.isEmpty()) {
+            final String no = stockInNo;
+            stockIns = stockIns.stream()
+                    .filter(s -> s.getStockInNo() != null && s.getStockInNo().contains(no))
+                    .collect(Collectors.toList());
+        }
+        // 按物资名称过滤
+        if (materialName != null && !materialName.isEmpty()) {
+            final String name = materialName;
+            stockIns = stockIns.stream()
+                    .filter(s -> s.getMaterialName() != null && s.getMaterialName().contains(name))
+                    .collect(Collectors.toList());
+        }
+        // 按物资编码过滤
+        if (materialCode != null && !materialCode.isEmpty()) {
+            final String code = materialCode;
+            stockIns = stockIns.stream()
+                    .filter(s -> s.getMaterialCode() != null && s.getMaterialCode().contains(code))
+                    .collect(Collectors.toList());
+        }
+        // 按时间范围过滤
+        if (startTime != null && endTime != null) {
+            stockIns = stockIns.stream()
+                    .filter(s -> s.getInTime() != null &&
+                            (s.getInTime().isEqual(startTime) || s.getInTime().isAfter(startTime)) &&
+                            (s.getInTime().isEqual(endTime) || s.getInTime().isBefore(endTime)))
+                    .collect(Collectors.toList());
+        }
+
+        // 记录总数
+        long total = stockIns.size();
+
+        // 应用分页
+        if (page != null && limit != null && limit > 0) {
+            int start = (int) ((page - 1) * limit);
+            int end = (int) Math.min(start + limit, stockIns.size());
+            if (start < stockIns.size()) {
+                stockIns = stockIns.subList(start, end);
+            } else {
+                stockIns = new java.util.ArrayList<>();
+            }
+        }
+
+        return Result.success(PageResult.of(stockIns, total));
     }
 
     /**
@@ -94,5 +148,22 @@ public class StockInController {
     @GetMapping("/material/{materialId}/total-amount")
     public Result<java.math.BigDecimal> sumAmountByMaterialId(@PathVariable Long materialId) {
         return Result.success(stockInService.sumAmountByMaterialId(materialId));
+    }
+
+    /**
+     * 删除入库单
+     */
+    @DeleteMapping("/{stockInId}")
+    public Result<Void> deleteStockIn(@PathVariable Long stockInId) {
+        stockInService.deleteStockIn(stockInId);
+        return Result.success("入库单删除成功", null);
+    }
+
+    /**
+     * 更新入库单
+     */
+    @PutMapping("/{stockInId}")
+    public Result<StockInVO> updateStockIn(@PathVariable Long stockInId, @Validated @RequestBody StockInDTO stockInDTO) {
+        return Result.success("入库单更新成功", stockInService.updateStockIn(stockInId, stockInDTO));
     }
 }

@@ -2,6 +2,7 @@ package com.officesupplyms.controller;
 
 import com.officesupplyms.model.dto.InventoryCheckDTO;
 import com.officesupplyms.model.vo.InventoryCheckVO;
+import com.officesupplyms.model.vo.MaterialCheckSummaryVO;
 import com.officesupplyms.service.InventoryCheckService;
 import com.officesupplyms.utils.Result;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -101,8 +102,8 @@ public class InventoryCheckController {
      * 调整库存根据盘点差异
      */
     @PutMapping("/{checkId}/adjust-stock")
-    public Result<Void> adjustStockByCheck(@PathVariable Long checkId) {
-        boolean success = inventoryCheckService.adjustStockByCheck(checkId);
+    public Result<Void> adjustStockByCheck(@PathVariable Long checkId, @RequestBody InventoryCheckDTO dto) {
+        boolean success = inventoryCheckService.adjustStockByCheck(checkId, dto.getActualQuantity(), dto.getAdjustmentRemark());
         return success ? Result.<Void>success("库存调整成功") : Result.<Void>error("库存调整失败");
     }
 
@@ -120,5 +121,21 @@ public class InventoryCheckController {
     @GetMapping("/material/{materialId}/total-difference")
     public Result<Integer> sumDifferenceByMaterialId(@PathVariable Long materialId) {
         return Result.success(inventoryCheckService.sumDifferenceByMaterialId(materialId));
+    }
+
+    /**
+     * 获取所有物资的盘点汇总列表
+     */
+    @GetMapping("/summary")
+    public Result<List<MaterialCheckSummaryVO>> getMaterialCheckSummaryList() {
+        return Result.success(inventoryCheckService.getMaterialCheckSummaryList());
+    }
+
+    /**
+     * 获取指定物资的盘点汇总
+     */
+    @GetMapping("/material/{materialId}/summary")
+    public Result<MaterialCheckSummaryVO> getMaterialCheckSummary(@PathVariable Long materialId) {
+        return Result.success(inventoryCheckService.getMaterialCheckSummary(materialId));
     }
 }

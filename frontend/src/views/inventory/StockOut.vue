@@ -47,6 +47,7 @@
     <div class="operation-container">
       <el-button type="primary" icon="el-icon-plus" @click="handleCreate">新建出库单</el-button>
       <el-button type="success" icon="el-icon-refresh" @click="getList">刷新</el-button>
+      <el-button v-if="filterMaterialId" type="info" icon="el-icon-back" @click="goBack">返回物资列表</el-button>
     </div>
 
     <el-table
@@ -104,10 +105,10 @@
           <span>{{ row.applicationNo || '-' }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="操作" align="center" width="150" class-name="small-padding fixed-width">
+      <el-table-column label="操作" align="center" width="180" class-name="small-padding fixed-width">
         <template slot-scope="{row}">
+          <el-button type="primary" size="mini" @click="handleEdit(row)">编辑</el-button>
           <el-button type="info" size="mini" @click="handleView(row)">查看</el-button>
-          <el-button type="danger" size="mini" @click="handleDelete(row)">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -118,6 +119,7 @@
       :page.sync="listQuery.page"
       :limit.sync="listQuery.limit"
       @pagination="getList"
+      @current-change="handlePageChange"
     />
 
     <!-- 新建/编辑出库单对话框 -->
@@ -188,6 +190,53 @@
         <el-button type="primary" @click="submitForm">确认</el-button>
       </div>
     </el-dialog>
+
+    <!-- 查看详情对话框 -->
+    <el-dialog title="出库单详情" :visible.sync="detailVisible" width="750px">
+      <div v-loading="detailLoading" class="detail-content">
+        <el-descriptions :column="2" border>
+          <el-descriptions-item label="出库单号">{{ currentStockOut.stockOutNo }}</el-descriptions-item>
+          <el-descriptions-item label="出库类型">
+            <el-tag :type="getTypeTagType(currentStockOut.type)" size="small">
+              {{ typeText(currentStockOut.type) }}
+            </el-tag>
+          </el-descriptions-item>
+          <el-descriptions-item label="物资编码">{{ currentStockOut.materialCode }}</el-descriptions-item>
+          <el-descriptions-item label="物资名称">{{ currentStockOut.materialName }}</el-descriptions-item>
+          <el-descriptions-item label="物资单位">{{ currentStockOut.materialUnit }}</el-descriptions-item>
+          <el-descriptions-item label="出库数量">{{ currentStockOut.quantity }}</el-descriptions-item>
+          <el-descriptions-item label="出库时间">{{ currentStockOut.outTime }}</el-descriptions-item>
+          <el-descriptions-item label="操作员">{{ currentStockOut.operatorName }}</el-descriptions-item>
+          <el-descriptions-item label="关联申领单">{{ currentStockOut.applicationNo || '-' }}</el-descriptions-item>
+          <el-descriptions-item label="出库原因">{{ currentStockOut.reason || '-' }}</el-descriptions-item>
+          <el-descriptions-item label="备注" :span="2">{{ currentStockOut.remark || '-' }}</el-descriptions-item>
+        </el-descriptions>
+
+        <!-- 操作历史 -->
+        <el-card class="history-card" shadow="never" v-if="stockOutHistory.length > 0">
+          <div slot="header" class="card-header">
+            <span>操作历史</span>
+          </div>
+          <el-timeline>
+            <el-timeline-item
+              v-for="(item, index) in stockOutHistory"
+              :key="index"
+              :timestamp="item.createTime"
+              type="primary"
+            >
+              <div class="timeline-content">
+                <div class="timeline-title">{{ item.actionText || item.action }}</div>
+                <div class="timeline-desc" v-if="item.operatorName">操作人：{{ item.operatorName }}</div>
+                <div class="timeline-desc" v-if="item.remark">备注：{{ item.remark }}</div>
+              </div>
+            </el-timeline-item>
+          </el-timeline>
+        </el-card>
+      </div>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="detailVisible = false">关闭</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -196,6 +245,7 @@ import * as stockOutApi from '@/api/stockOut'
 import * as materialApi from '@/api/material'
 import * as applicationApi from '@/api/application'
 import Pagination from '@/components/Pagination'
+import dayjs from 'dayjs'
 
 export default {
   name: 'StockOut',
@@ -228,28 +278,54 @@ export default {
       rules: {
         materialId: [{ required: true, message: '请选择物资', trigger: 'blur' }],
         type: [{ required: true, message: '请选择出库类型', trigger: 'blur' }],
-        quantity: [{ required: true, message: '请输入出库数量', trigger: 'blur' }],
-        stockOutTime: [{ required: true, message: '请选择出库时间', trigger: 'blur' }]
+        quantity: [{ required: true, message: '请输入出库数量', trigger: 'blur' }]
       },
       materialOptions: [],
-      applicationOptions: []
+      applicationOptions: [],
+      filterMaterialId: null,
+      detailVisible: false,
+      detailLoading: false,
+      currentStockOut: {},
+      stockOutHistory: []
     }
   },
   created() {
+    if (this.$route.query.materialId) {
+      this.filterMaterialId = parseInt(this.$route.query.materialId)
+      this.listQuery.materialId = this.filterMaterialId
+    }
     this.getList()
     this.loadMaterialOptions()
     this.loadApplicationOptions()
   },
   methods: {
-    getList() {
+    getList(pagination) {
+      if (pagination) {
+        this.listQuery.page = pagination.page
+        this.listQuery.limit = pagination.limit
+      }
       this.listLoading = true
-      stockOutApi.getStockOutList(this.listQuery).then(response => {
-        this.list = response.data.list || response.data
-        this.total = response.data.total || this.list.length
-        this.listLoading = false
-      }).catch(() => {
-        this.listLoading = false
-      })
+      if (this.filterMaterialId) {
+        stockOutApi.getStockOutsByMaterialId(this.filterMaterialId).then(response => {
+          this.list = response.data || []
+          this.total = this.list.length
+          this.listLoading = false
+        }).catch(() => {
+          this.listLoading = false
+        })
+      } else {
+        stockOutApi.getStockOutList(this.listQuery).then(response => {
+          this.list = response.data.list || response.data
+          this.total = response.data.total || this.list.length
+          this.listLoading = false
+        }).catch(() => {
+          this.listLoading = false
+        })
+      }
+    },
+    handlePageChange(page) {
+      this.listQuery.page = page
+      this.getList({ page: page, limit: this.listQuery.limit })
     },
     loadMaterialOptions() {
       materialApi.getMaterialList({ limit: 1000 }).then(response => {
@@ -302,7 +378,6 @@ export default {
         materialId: '',
         type: 'APPLICATION',
         quantity: 1,
-        stockOutTime: new Date().format('yyyy-MM-dd HH:mm:ss'),
         remark: '',
         applicationId: ''
       }
@@ -315,31 +390,69 @@ export default {
       // 可以检查库存数量
     },
     handleView(row) {
-      this.$alert(`出库单详情：${JSON.stringify(row, null, 2)}`, '查看详情', {
-        confirmButtonText: '关闭'
+      this.detailLoading = true
+      this.currentStockOut = {}
+      this.stockOutHistory = []
+      this.detailVisible = true
+      stockOutApi.getStockOutById(row.id).then(response => {
+        this.currentStockOut = response.data || {}
+        this.stockOutHistory = response.data.historyList || []
+        this.detailLoading = false
+      }).catch(() => {
+        this.detailLoading = false
       })
     },
-    handleDelete(row) {
-      this.$confirm('确认删除该出库单吗？', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(() => {
-        // 假设有删除接口，这里暂时用提示
-        this.$message.success('删除成功')
-        this.getList()
-      })
+    handleEdit(row) {
+      this.dialogTitle = '编辑出库单'
+      this.form = {
+        id: row.id,
+        materialId: row.materialId,
+        type: row.type,
+        quantity: row.quantity,
+        remark: row.remark || '',
+        applicationId: row.applicationId
+      }
+      if (this.$refs.form) {
+        this.$refs.form.clearValidate()
+      }
+      this.dialogVisible = true
+    },
+    getTypeTagType(type) {
+      const map = {
+        'APPLICATION': 'success',
+        'TRANSFER': 'primary',
+        'LOSS': 'danger',
+        'OTHER': 'warning'
+      }
+      return map[type] || 'info'
     },
     submitForm() {
       this.$refs.form.validate(valid => {
         if (valid) {
-          stockOutApi.createStockOut(this.form).then(response => {
-            this.$message.success('出库单创建成功')
-            this.dialogVisible = false
-            this.getList()
-          })
+          if (this.form.id) {
+            // 编辑模式
+            stockOutApi.updateStockOut(this.form.id, this.form).then(() => {
+              this.$message.success('出库单更新成功')
+              this.dialogVisible = false
+              this.getList()
+            }).catch((error) => {
+              this.$message.error(error.message || '更新失败')
+            })
+          } else {
+            // 新建模式
+            stockOutApi.createStockOut(this.form).then(() => {
+              this.$message.success('出库单创建成功')
+              this.dialogVisible = false
+              this.getList()
+            }).catch((error) => {
+              this.$message.error(error.message || '创建失败')
+            })
+          }
         }
       })
+    },
+    goBack() {
+      this.$router.push('/inventory')
     }
   }
 }
@@ -354,5 +467,24 @@ export default {
 }
 .operation-container {
   margin-bottom: 20px;
+}
+::v-deep .el-table .el-table__cell {
+  .el-button + .el-button {
+    margin-left: 8px;
+  }
+}
+.history-card {
+  margin-top: 20px;
+}
+.timeline-content {
+  .timeline-title {
+    font-weight: 500;
+    color: #303133;
+  }
+  .timeline-desc {
+    color: #909399;
+    font-size: 12px;
+    margin-top: 4px;
+  }
 }
 </style>

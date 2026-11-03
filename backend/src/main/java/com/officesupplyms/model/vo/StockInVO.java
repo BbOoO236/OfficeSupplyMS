@@ -5,6 +5,7 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * 入库单VO
@@ -36,4 +37,6 @@ public class StockInVO {
     private String operatorName; // 操作人姓名
 
     private String remark;
+
+    private List<StockInHistoryVO> historyList; // 操作历史
 }

@@ -5,7 +5,8 @@
       "Bash(sc query:*)",
       "Bash(mvn:*)",
       "Bash(npm:*)",
-      "Bash(cd:*)"
+      "Bash(cd:*)",
+      "Bash(curl:*)"
     ]
   }
 }

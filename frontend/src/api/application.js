@@ -38,6 +38,29 @@ export function createApplication(data) {
   })
 }
 
+export function updateApplication(id, data) {
+  return request({
+    url: `/applications/${id}`,
+    method: 'put',
+    data
+  })
+}
+
+export function cancelApplication(id) {
+  return request({
+    url: `/applications/${id}/cancel`,
+    method: 'put'
+  })
+}
+
+export function rollbackApplication(id, toStatus) {
+  return request({
+    url: `/applications/${id}/rollback`,
+    method: 'put',
+    params: { toStatus }
+  })
+}
+
 export function approveApplication(data) {
   return request({
     url: '/applications/approve',
@@ -85,5 +108,13 @@ export function getMonthlyApplicationStats() {
   return request({
     url: '/applications/stats/monthly',
     method: 'get'
+  })
+}
+
+export function getByUserAndMaterial(userId, materialId) {
+  return request({
+    url: '/applications/user-material',
+    method: 'get',
+    params: { userId, materialId }
   })
 }

@@ -162,11 +162,11 @@
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="操作" align="center" width="200" class-name="small-padding fixed-width">
+      <el-table-column label="操作" align="center" width="280" class-name="small-padding fixed-width">
         <template slot-scope="{row}">
-          <el-button size="mini" type="info" @click="handleStockInRecord(row)">入库记录</el-button>
-          <el-button size="mini" type="info" @click="handleStockOutRecord(row)">出库记录</el-button>
-          <el-button size="mini" type="warning" @click="handleCheckRecord(row)">盘点记录</el-button>
+          <el-button size="mini" type="primary" @click="handleStockInRecord(row)">入库记录</el-button>
+          <el-button size="mini" type="success" @click="handleStockOutRecord(row)">出库记录</el-button>
+          <el-button size="mini" type="warning" @click="handleCheckRecord(row)">盘点</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -177,6 +177,7 @@
       :page.sync="listQuery.page"
       :limit.sync="listQuery.limit"
       @pagination="getList"
+      @current-change="handlePageChange"
     />
   </div>
 </template>
@@ -214,7 +215,11 @@ export default {
     this.getStatistics()
   },
   methods: {
-    getList() {
+    getList(pagination) {
+      if (pagination) {
+        this.listQuery.page = pagination.page
+        this.listQuery.limit = pagination.limit
+      }
       this.listLoading = true
       materialApi.getMaterialList(this.listQuery).then(response => {
         this.list = response.data.list || response.data
@@ -233,6 +238,10 @@ export default {
         this.statistics.lowStockMaterials = materials.filter(item => item.stockStatus === 'LOW').length
         this.statistics.needReorderMaterials = materials.filter(item => item.needReorder).length
       })
+    },
+    handlePageChange(page) {
+      this.listQuery.page = page
+      this.getList({ page: page, limit: this.listQuery.limit })
     },
     handleFilter() {
       this.listQuery.page = 1
@@ -276,22 +285,35 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+@import '@/styles/variables.scss';
+
 .filter-container {
-  padding-bottom: 20px;
-  .el-form-item {
+  background: $surface-color;
+  border-radius: $border-radius-xl;
+  padding: 20px;
+  margin-bottom: 16px;
+  border: 1px solid $border-color;
+
+  ::v-deep .el-form-item {
     margin-bottom: 0;
   }
 }
+
 .statistics-container {
-  margin-bottom: 20px;
+  margin-bottom: 16px;
+
   .stat-card {
+    border-radius: $border-radius-xl;
+    border: 1px solid $border-color;
+
     .stat-content {
       display: flex;
       align-items: center;
+
       .stat-icon {
         width: 50px;
         height: 50px;
-        border-radius: 8px;
+        border-radius: $border-radius-lg;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -299,22 +321,36 @@ export default {
         font-size: 24px;
         margin-right: 15px;
       }
+
       .stat-info {
         .stat-value {
           font-size: 24px;
           font-weight: bold;
           line-height: 1;
+          font-family: 'Lexend', sans-serif;
+          color: $text-primary;
         }
+
         .stat-label {
           font-size: 14px;
-          color: #909399;
+          color: $text-muted;
           margin-top: 5px;
         }
       }
     }
   }
 }
+
 .operation-container {
-  margin-bottom: 20px;
+  margin-bottom: 16px;
+}
+
+::v-deep .el-table {
+  border-radius: $border-radius-xl;
+  overflow: hidden;
+
+  th.el-table__cell {
+    background-color: $background-color !important;
+  }
 }
 </style>

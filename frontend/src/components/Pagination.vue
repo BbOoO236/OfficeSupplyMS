@@ -1,9 +1,9 @@
 <template>
   <div class="pagination-container">
     <el-pagination
-      :current-page="currentPage"
+      :current-page.sync="currentPage"
       :page-sizes="pageSizes"
-      :page-size="pageSize"
+      :page-size.sync="pageSize"
       :layout="layout"
       :total="total"
       @size-change="handleSizeChange"
@@ -41,7 +41,7 @@ export default {
     },
     autoScroll: {
       type: Boolean,
-      default: true
+      default: false
     }
   },
   computed: {
@@ -64,12 +64,14 @@ export default {
   },
   methods: {
     handleSizeChange(val) {
+      console.log('handleSizeChange:', val, 'current page:', this.page)
       this.$emit('update:limit', val)
-      this.$emit('pagination', { page: this.currentPage, limit: val })
+      this.$emit('pagination', { page: this.page, limit: val })
     },
     handleCurrentChange(val) {
+      console.log('handleCurrentChange:', val, 'current limit:', this.limit)
       this.$emit('update:page', val)
-      this.$emit('pagination', { page: val, limit: this.pageSize })
+      this.$emit('pagination', { page: val, limit: this.limit })
       if (this.autoScroll) {
         this.scrollToTop()
       }

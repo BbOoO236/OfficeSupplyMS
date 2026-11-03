@@ -56,4 +56,7 @@ public class Material {
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime updateTime;
+
+    public void setCreateTime(LocalDateTime now) {
+    }
 }

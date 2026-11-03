@@ -51,6 +51,11 @@ public interface AlgorithmService {
     AlgorithmResultVO.AnomalyDetectionResult calculateUserMaterialStatistics(Long userId, Long materialId);
 
     /**
+     * 计算某物资的历史申领统计（按物资维度，不区分用户）
+     */
+    AlgorithmResultVO.AnomalyDetectionResult calculateMaterialStatistics(Long materialId);
+
+    /**
      * 更新物资的年消耗数据
      */
     void updateMaterialAnnualConsumption();
@@ -89,6 +94,21 @@ public interface AlgorithmService {
      * 获取预测与实际消耗对比数据
      */
     AlgorithmResultVO.ChartData getForecastVsActualComparison(Long materialId);
+
+    /**
+     * 获取部门申领统计数据
+     */
+    AlgorithmResultVO.ChartData getDepartmentApplicationStats();
+
+    /**
+     * 获取库存状态分布数据
+     */
+    AlgorithmResultVO.ChartData getStockStatusDistribution();
+
+    /**
+     * 获取所有异常申领记录
+     */
+    List<AlgorithmResultVO.AnomalyDetectionFlatVO> getAnomalousApplications();
 
     /**
      * ABC分类计算 - 返回扁平化结果

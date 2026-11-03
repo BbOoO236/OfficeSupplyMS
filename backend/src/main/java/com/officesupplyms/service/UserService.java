@@ -14,7 +14,7 @@ public interface UserService {
     /**
      * 用户登录
      */
-    String login(String username, String password);
+    String login(String username, String password, String role);
 
     /**
      * 获取当前用户信息

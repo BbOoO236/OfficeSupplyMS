@@ -2,6 +2,7 @@ package com.officesupplyms.controller;
 
 import com.officesupplyms.model.dto.MaterialDTO;
 import com.officesupplyms.model.vo.MaterialVO;
+import com.officesupplyms.model.vo.PageResult;
 import com.officesupplyms.service.MaterialService;
 import com.officesupplyms.utils.Result;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,6 +48,17 @@ public class MaterialController {
     }
 
     /**
+     * 更新物资状态（启用/停用）
+     */
+    @PutMapping("/{materialId}/status")
+    public Result<Void> updateMaterialStatus(@PathVariable Long materialId,
+                                              @RequestParam Integer status) {
+        boolean success = materialService.updateMaterialStatus(materialId, status);
+        return success ? Result.<Void>success(status == 1 ? "启用成功" : "停用成功")
+                       : Result.<Void>error("操作失败");
+    }
+
+    /**
      * 根据ID查询物资
      */
     @GetMapping("/{materialId}")
@@ -63,11 +75,39 @@ public class MaterialController {
     }
 
     /**
-     * 查询所有物资
+     * 查询所有物资（支持搜索过滤）
      */
     @GetMapping
-    public Result<List<MaterialVO>> getAllMaterials() {
-        return Result.success(materialService.getAllMaterials());
+    public Result<PageResult<MaterialVO>> getAllMaterials(
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String code,
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) String abcClass,
+            @RequestParam(required = false) String stockStatus,
+            @RequestParam(required = false) String materialName,
+            @RequestParam(required = false) String materialCode,
+            @RequestParam(required = false) Long page,
+            @RequestParam(required = false) Long limit) {
+        // 兼容 materialName/materialCode 参数
+        String searchName = (name != null && !name.isEmpty()) ? name : materialName;
+        String searchCode = (code != null && !code.isEmpty()) ? code : materialCode;
+        return Result.success(materialService.getAllMaterials(searchName, searchCode, category, abcClass, stockStatus, page, limit));
+    }
+
+    /**
+     * 获取所有物资类别（下拉框用）
+     */
+    @GetMapping("/categories")
+    public Result<List<String>> getAllCategories() {
+        return Result.success(materialService.getAllCategories());
+    }
+
+    /**
+     * 获取所有物资编码（下拉框用）
+     */
+    @GetMapping("/codes")
+    public Result<List<String>> getAllCodes() {
+        return Result.success(materialService.getAllCodes());
     }
 
     /**
