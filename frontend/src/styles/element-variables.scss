@@ -1,0 +1,64 @@
+/* Element UI 主题覆盖 - Trust Authority 风格 */
+/* 必须放在 element-ui 导入之前生效 */
+
+/* 主色调 - 青色系 */
+$--color-primary: #0891B2;
+$--color-primary-light-1: #14B8A6;
+$--color-primary-light-2: #22D3EE;
+$--color-primary-light-3: #67E8F9;
+$--color-primary-light-4: #A5F3FC;
+$--color-primary-light-5: #CFFAFE;
+$--color-primary-light-6: #ECFEFF;
+$--color-primary-light-7: #F0FDFA;
+$--color-primary-light-8: #F8FAFC;
+$--color-primary-light-9: #FAFAF9;
+
+/* 成功色 */
+$--color-success: #22C55E;
+
+/* 警告色 */
+$--color-warning: #F59E0B;
+
+/* 危险色 */
+$--color-danger: #EF4444;
+
+/* 信息色 */
+$--color-info: #64748B;
+
+/* 圆角 */
+$--border-radius-base: 8px;
+$--border-radius-small: 6px;
+$--border-radius-round: 50%;
+$--border-radius-circle: 50%;
+
+/* 字体 */
+$--font-family: 'Source Sans 3', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+$--font-size-base: 14px;
+
+/* 输入框 */
+$--input-border-radius: 8px;
+$--input-border-color: #E2E8F0;
+$--input-bg-color: #FFFFFF;
+$--input-hover-border-color: #0891B2;
+$--input-focus-border-color: #0891B2;
+$--input-focus-border-color: #0891B2;
+
+/* 按钮 */
+$--button-border-radius: 8px;
+$--button-padding-vertical: 10px;
+$--button-padding-horizontal: 20px;
+
+/* 卡片 */
+$--card-border-radius: 16px;
+$--card-border-color: #E2E8F0;
+$--card-padding: 20px;
+
+/* 对话框 */
+$--dialog-border-radius: 16px;
+
+/* 表格 */
+$--table-border-color: #E2E8F0;
+$--table-header-background: #F8FAFC;
+
+/* 菜单 */
+$--menu-border-radius: 8px;

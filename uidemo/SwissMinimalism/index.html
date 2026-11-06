@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OfficeSupplyMS - 办公室物资管理系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#000000',
+                        secondary: '#F5F5F5',
+                        accent: '#2563EB',
+                        background: '#FFFFFF',
+                        surface: '#FFFFFF',
+                        'text-primary': '#000000',
+                        'text-secondary': '#6B7280',
+                        border: '#E5E7EB',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-background text-text-primary">
+
+    <div class="flex min-h-screen">
+
+        <!-- 侧边导航 -->
+        <aside class="w-56 bg-surface border-r border-border flex flex-col">
+            <!-- Logo -->
+            <div class="h-16 flex items-center px-6 border-b border-border">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 bg-black rounded-sm flex items-center justify-center">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                        </svg>
+                    </div>
+                    <span class="font-semibold text-sm tracking-tight">OfficeSupply</span>
+                </div>
+            </div>
+
+            <!-- 导航菜单 -->
+            <nav class="flex-1 py-6">
+                <div class="px-5 mb-4">
+                    <span class="text-xs font-medium text-text-secondary uppercase tracking-widest">Main</span>
+                </div>
+                <a href="#" class="flex items-center gap-3 px-5 py-2.5 border-l-2 border-black bg-gray-50 text-black">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                    </svg>
+                    <span class="text-sm font-medium">Dashboard</span>
+                </a>
+                <a href="#" class="flex items-center gap-3 px-5 py-2.5 border-l-2 border-transparent hover:bg-gray-50 transition-colors duration-200 cursor-pointer">
+                    <svg class="w-4 h-4 text-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                    </svg>
+                    <span class="text-sm text-text-secondary">Requests</span>
+                </a>
+                <a href="#" class="flex items-center gap-3 px-5 py-2.5 border-l-2 border-transparent hover:bg-gray-50 transition-colors duration-200 cursor-pointer">
+                    <svg class="w-4 h-4 text-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <span class="text-sm text-text-secondary">Approvals</span>
+                </a>
+                <a href="#" class="flex items-center gap-3 px-5 py-2.5 border-l-2 border-transparent hover:bg-gray-50 transition-colors duration-200 cursor-pointer">
+                    <svg class="w-4 h-4 text-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                    </svg>
+                    <span class="text-sm text-text-secondary">Inventory</span>
+                </a>
+
+                <div class="px-5 mt-8 mb-4">
+                    <span class="text-xs font-medium text-text-secondary uppercase tracking-widest">System</span>
+                </div>
+                <a href="#" class="flex items-center gap-3 px-5 py-2.5 border-l-2 border-transparent hover:bg-gray-50 transition-colors duration-200 cursor-pointer">
+                    <svg class="w-4 h-4 text-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    <span class="text-sm text-text-secondary">Settings</span>
+                </a>
+            </nav>
+
+            <!-- 用户信息 -->
+            <div class="p-5 border-t border-border">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 bg-black rounded-sm flex items-center justify-center">
+                        <span class="text-white text-xs font-semibold">JD</span>
+                    </div>
+                    <div class="flex-1">
+                        <p class="font-medium text-sm">John Doe</p>
+                        <p class="text-xs text-text-secondary">Administrator</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- 主内容区 -->
+        <main class="flex-1 flex flex-col">
+            <!-- 顶部导航 -->
+            <header class="h-14 bg-surface border-b border-border flex items-center justify-between px-6">
+                <div class="flex items-center gap-6">
+                    <h1 class="text-base font-semibold">Dashboard</h1>
+                    <div class="flex items-center gap-1 text-sm text-text-secondary">
+                        <span>Tuesday, April 21, 2026</span>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button class="px-4 py-1.5 bg-black text-white text-sm font-medium rounded-sm hover:bg-gray-800 transition-colors duration-200 cursor-pointer">
+                        + New Request
+                    </button>
+                </div>
+            </header>
+
+            <!-- 内容区域 -->
+            <div class="flex-1 p-6">
+                <!-- 欢迎区域 -->
+                <div class="mb-8">
+                    <h2 class="text-2xl font-semibold tracking-tight mb-1">Good morning, John</h2>
+                    <p class="text-text-secondary">12 requests completed this week</p>
+                </div>
+
+                <!-- 统计卡片 - 4列网格 -->
+                <div class="grid grid-cols-12 gap-4 mb-6">
+                    <div class="col-span-3 bg-surface border border-border p-5">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-xs font-medium text-text-secondary uppercase tracking-wide">Today's Requests</span>
+                            <div class="w-8 h-8 bg-blue-50 rounded-sm flex items-center justify-center">
+                                <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <p class="text-3xl font-bold tracking-tight">24</p>
+                        <p class="text-xs text-green-600 mt-1">+12% from yesterday</p>
+                    </div>
+
+                    <div class="col-span-3 bg-surface border border-border p-5">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-xs font-medium text-text-secondary uppercase tracking-wide">Pending Approval</span>
+                            <div class="w-8 h-8 bg-amber-50 rounded-sm flex items-center justify-center">
+                                <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <p class="text-3xl font-bold tracking-tight">8</p>
+                        <p class="text-xs text-amber-600 mt-1">Needs attention</p>
+                    </div>
+
+                    <div class="col-span-3 bg-surface border border-border p-5">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-xs font-medium text-text-secondary uppercase tracking-wide">Monthly Usage</span>
+                            <div class="w-8 h-8 bg-green-50 rounded-sm flex items-center justify-center">
+                                <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <p class="text-3xl font-bold tracking-tight">1,247</p>
+                        <p class="text-xs text-text-secondary mt-1">Items this month</p>
+                    </div>
+
+                    <div class="col-span-3 bg-surface border border-border p-5">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-xs font-medium text-text-secondary uppercase tracking-wide">Low Stock Alert</span>
+                            <div class="w-8 h-8 bg-red-50 rounded-sm flex items-center justify-center">
+                                <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <p class="text-3xl font-bold tracking-tight">3</p>
+                        <p class="text-xs text-red-600 mt-1">Need restock</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-12 gap-4">
+                    <!-- 最近申请 - 8列 -->
+                    <div class="col-span-8 bg-surface border border-border">
+                        <div class="flex items-center justify-between px-5 py-4 border-b border-border">
+                            <h3 class="font-semibold text-sm">Recent Requests</h3>
+                            <a href="#" class="text-xs text-blue-600 hover:text-blue-800 transition-colors duration-200 cursor-pointer">View all</a>
+                        </div>
+                        <table class="w-full">
+                            <thead>
+                                <tr class="text-left text-xs font-medium text-text-secondary uppercase tracking-wide px-5">
+                                    <th class="px-5 py-3">Applicant</th>
+                                    <th class="py-3">Item</th>
+                                    <th class="py-3">Qty</th>
+                                    <th class="py-3">Status</th>
+                                    <th class="py-3">Date</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-sm">
+                                <tr class="border-t border-border">
+                                    <td class="px-5 py-3">
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-6 h-6 bg-gray-100 rounded-sm flex items-center justify-center">
+                                                <span class="text-xs font-medium">ZL</span>
+                                            </div>
+                                            <span>Zhang Lin</span>
+                                        </div>
+                                    </td>
+                                    <td class="py-3">A4 Paper</td>
+                                    <td class="py-3">5 boxes</td>
+                                    <td class="py-3">
+                                        <span class="inline-flex px-2 py-0.5 bg-amber-50 text-amber-700 text-xs font-medium rounded-sm">Pending</span>
+                                    </td>
+                                    <td class="py-3 text-text-secondary">Today 09:15</td>
+                                </tr>
+                                <tr class="border-t border-border">
+                                    <td class="px-5 py-3">
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-6 h-6 bg-gray-100 rounded-sm flex items-center justify-center">
+                                                <span class="text-xs font-medium">WW</span>
+                                            </div>
+                                            <span>Wang Wei</span>
+                                        </div>
+                                    </td>
+                                    <td class="py-3">Black Pens</td>
+                                    <td class="py-3">20 pcs</td>
+                                    <td class="py-3">
+                                        <span class="inline-flex px-2 py-0.5 bg-green-50 text-green-700 text-xs font-medium rounded-sm">Approved</span>
+                                    </td>
+                                    <td class="py-3 text-text-secondary">Today 08:42</td>
+                                </tr>
+                                <tr class="border-t border-border">
+                                    <td class="px-5 py-3">
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-6 h-6 bg-gray-100 rounded-sm flex items-center justify-center">
+                                                <span class="text-xs font-medium">LN</span>
+                                            </div>
+                                            <span>Li Na</span>
+                                        </div>
+                                    </td>
+                                    <td class="py-3">Wireless Mouse</td>
+                                    <td class="py-3">2 pcs</td>
+                                    <td class="py-3">
+                                        <span class="inline-flex px-2 py-0.5 bg-green-50 text-green-700 text-xs font-medium rounded-sm">Approved</span>
+                                    </td>
+                                    <td class="py-3 text-text-secondary">Yesterday 16:30</td>
+                                </tr>
+                                <tr class="border-t border-border">
+                                    <td class="px-5 py-3">
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-6 h-6 bg-gray-100 rounded-sm flex items-center justify-center">
+                                                <span class="text-xs font-medium">CH</span>
+                                            </div>
+                                            <span>Chen Hao</span>
+                                        </div>
+                                    </td>
+                                    <td class="py-3">Desktop Keyboard</td>
+                                    <td class="py-3">3 pcs</td>
+                                    <td class="py-3">
+                                        <span class="inline-flex px-2 py-0.5 bg-gray-100 text-gray-600 text-xs font-medium rounded-sm">Rejected</span>
+                                    </td>
+                                    <td class="py-3 text-text-secondary">Yesterday 14:20</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- 右侧 - 4列 -->
+                    <div class="col-span-4 space-y-4">
+                        <!-- 快捷入口 -->
+                        <div class="bg-surface border border-border p-5">
+                            <h3 class="font-semibold text-sm mb-4">Quick Actions</h3>
+                            <div class="grid grid-cols-2 gap-2">
+                                <button class="flex flex-col items-center gap-2 p-3 border border-border hover:border-black hover:bg-gray-50 transition-colors duration-200 cursor-pointer">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                                    </svg>
+                                    <span class="text-xs font-medium">New Request</span>
+                                </button>
+                                <button class="flex flex-col items-center gap-2 p-3 border border-border hover:border-black hover:bg-gray-50 transition-colors duration-200 cursor-pointer">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                                    </svg>
+                                    <span class="text-xs font-medium">Approve</span>
+                                </button>
+                                <button class="flex flex-col items-center gap-2 p-3 border border-border hover:border-black hover:bg-gray-50 transition-colors duration-200 cursor-pointer">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                                    </svg>
+                                    <span class="text-xs font-medium">Stock In</span>
+                                </button>
+                                <button class="flex flex-col items-center gap-2 p-3 border border-border hover:border-black hover:bg-gray-50 transition-colors duration-200 cursor-pointer">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                    </svg>
+                                    <span class="text-xs font-medium">Reports</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 系统公告 -->
+                        <div class="bg-surface border border-border p-5">
+                            <h3 class="font-semibold text-sm mb-4">Announcements</h3>
+                            <div class="space-y-3">
+                                <a href="#" class="block group cursor-pointer">
+                                    <p class="text-sm font-medium group-hover:text-black transition-colors duration-200">Holiday Delivery Schedule</p>
+                                    <p class="text-xs text-text-secondary mt-0.5">Apr 15, 2026</p>
+                                </a>
+                                <a href="#" class="block group cursor-pointer">
+                                    <p class="text-sm font-medium group-hover:text-black transition-colors duration-200">System Upgrade Notice</p>
+                                    <p class="text-xs text-text-secondary mt-0.5">Apr 10, 2026</p>
+                                </a>
+                                <a href="#" class="block group cursor-pointer">
+                                    <p class="text-sm font-medium group-hover:text-black transition-colors duration-200">New Category Added</p>
+                                    <p class="text-xs text-text-secondary mt-0.5">Apr 05, 2026</p>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 库存预警 -->
+                <div class="mt-4 bg-surface border border-border">
+                    <div class="flex items-center justify-between px-5 py-4 border-b border-border">
+                        <div class="flex items-center gap-2">
+                            <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                            </svg>
+                            <h3 class="font-semibold text-sm">Low Stock Alert</h3>
+                        </div>
+                        <a href="#" class="text-xs text-blue-600 hover:text-blue-800 transition-colors duration-200 cursor-pointer">View all</a>
+                    </div>
+                    <div class="flex">
+                        <div class="flex-1 flex items-center gap-4 p-4 border-r border-border">
+                            <div class="w-10 h-10 bg-red-50 border border-red-100 flex items-center justify-center">
+                                <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                </svg>
+                            </div>
+                            <div class="flex-1">
+                                <p class="font-medium text-sm">A4 Paper</p>
+                                <p class="text-xs text-red-600">12 / 50 boxes</p>
+                            </div>
+                            <button class="px-3 py-1.5 bg-black text-white text-xs font-medium rounded-sm hover:bg-gray-800 transition-colors duration-200 cursor-pointer">
+                                Restock
+                            </button>
+                        </div>
+                        <div class="flex-1 flex items-center gap-4 p-4 border-r border-border">
+                            <div class="w-10 h-10 bg-amber-50 border border-amber-100 flex items-center justify-center">
+                                <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                                </svg>
+                            </div>
+                            <div class="flex-1">
+                                <p class="font-medium text-sm">Black Pens</p>
+                                <p class="text-xs text-amber-600">35 / 100 pcs</p>
+                            </div>
+                            <button class="px-3 py-1.5 bg-black text-white text-xs font-medium rounded-sm hover:bg-gray-800 transition-colors duration-200 cursor-pointer">
+                                Restock
+                            </button>
+                        </div>
+                        <div class="flex-1 flex items-center gap-4 p-4">
+                            <div class="w-10 h-10 bg-amber-50 border border-amber-100 flex items-center justify-center">
+                                <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z"/>
+                                </svg>
+                            </div>
+                            <div class="flex-1">
+                                <p class="font-medium text-sm">Stapler</p>
+                                <p class="text-xs text-amber-600">8 / 20 pcs</p>
+                            </div>
+                            <button class="px-3 py-1.5 bg-black text-white text-xs font-medium rounded-sm hover:bg-gray-800 transition-colors duration-200 cursor-pointer">
+                                Restock
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+</body>
+</html>
