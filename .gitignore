@@ -68,6 +68,8 @@ thesis.zip
 uidemo/
 docs/meeting/
 docs/superpowers/
+部署.md
+企业部署.md
 
 # Operating system files
 .DS_Store
