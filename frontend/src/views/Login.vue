@@ -98,6 +98,10 @@
               </el-button>
             </el-form-item>
           </el-form>
+          <div class="login-tips">
+            临时登录账号：管理员 admin / admin123；
+            普通用户 user1 / user123
+          </div>
         </div>
       </div>
     </div>
@@ -362,5 +366,14 @@ export default {
       box-shadow: 0 6px 20px rgba(8, 145, 178, 0.4);
     }
   }
+}
+
+.login-tips {
+  margin-top: 16px;
+  font-size: 12px;
+  line-height: 1.6;
+  text-align: center;
+  color: $text-secondary;
+  opacity: 0.8;
 }
 </style>

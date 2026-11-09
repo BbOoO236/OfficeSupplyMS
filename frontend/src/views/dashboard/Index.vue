@@ -24,7 +24,7 @@
         <div class="stat-info">
           <span class="stat-label">今日申请</span>
           <span class="stat-value">{{ statistics.todayApplications }}</span>
-          <span class="stat-change positive">+12%</span>
+          <span class="stat-label">条</span>
         </div>
       </div>
 

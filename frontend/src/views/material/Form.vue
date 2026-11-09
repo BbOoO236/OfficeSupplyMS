@@ -6,21 +6,7 @@
       </div>
       <el-form ref="form" :model="form" :rules="rules" label-width="120px">
         <el-form-item label="物资编码" prop="code">
-          <el-select
-            v-model="form.code"
-            placeholder="请选择或输入物资编码"
-            filterable
-            allow-create
-            default-first-option
-            style="width: 100%;"
-          >
-            <el-option
-              v-for="code in codeOptions"
-              :key="code"
-              :label="code"
-              :value="code"
-            />
-          </el-select>
+          <el-input v-model="form.code" placeholder="请输入物资编码" />
         </el-form-item>
         <el-form-item label="物资名称" prop="name">
           <el-input v-model="form.name" placeholder="请输入物资名称" />
@@ -99,7 +85,6 @@ export default {
         remark: ''
       },
       categoryOptions: [],
-      codeOptions: [],
       rules: {
         code: [
           { required: true, message: '请输入物资编码', trigger: 'blur' }
@@ -128,9 +113,6 @@ export default {
     fetchOptions() {
       materialApi.getMaterialCategories().then(response => {
         this.categoryOptions = response.data || []
-      })
-      materialApi.getMaterialCodes().then(response => {
-        this.codeOptions = response.data || []
       })
     },
     fetchData() {

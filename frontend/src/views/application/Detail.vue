@@ -159,6 +159,30 @@
       </div>
     </div>
 
+    <!-- 审批对话框 -->
+    <el-dialog :title="approveTitle" :visible.sync="approveDialogVisible" width="500px">
+      <el-form ref="approveForm" :model="approveForm" :rules="approveRules" label-width="100px">
+        <el-form-item label="审批结果" prop="action">
+          <el-radio-group v-model="approveForm.action">
+            <el-radio label="APPROVE">通过</el-radio>
+            <el-radio label="REJECT">拒绝</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item label="审批意见" prop="rejectReason">
+          <el-input
+            v-model="approveForm.rejectReason"
+            type="textarea"
+            :rows="3"
+            placeholder="请输入审批意见"
+          />
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="approveDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="confirmApprove">确认</el-button>
+      </div>
+    </el-dialog>
+
     <!-- 空状态 -->
     <el-empty v-if="!loading && !application.id"></el-empty>
   </div>
@@ -187,7 +211,19 @@ export default {
         quantity: [{ required: true, message: '请输入申领数量', trigger: 'blur' }],
         purpose: [{ required: true, message: '请输入用途', trigger: 'blur' }]
       },
-      materialOptions: []
+      materialOptions: [],
+      approveDialogVisible: false,
+      approveTitle: '',
+      approveForm: {
+        applicationId: '',
+        action: 'APPROVE',
+        rejectReason: ''
+      },
+      approveRules: {
+        action: [
+          { required: true, message: '请选择审批结果', trigger: 'blur' }
+        ]
+      }
     }
   },
   computed: {
@@ -453,59 +489,24 @@ export default {
       })
     },
     handleApprove() {
-      this.$prompt('请输入审批意见', '审批', {
-        confirmButtonText: '通过',
-        cancelButtonText: '拒绝',
-        inputType: 'textarea',
-        beforeClose: (action, instance, done) => {
-          if (action === 'confirm') {
-            instance.confirmButtonLoading = true
-            applicationApi.approveApplication({
-              applicationId: this.application.id,
-              action: 'APPROVE',
-              approvalRemark: instance.inputValue || ''
-            }).then(() => {
-              this.$message.success('审批通过')
-              instance.confirmButtonLoading = false
-              done()
-              this.loadApplicationDetail()
-            }).catch(() => {
-              instance.confirmButtonLoading = false
-            })
-          } else if (action === 'cancel') {
-            instance.cancelButtonLoading = true
-            this.$prompt('请输入拒绝原因', '拒绝', {
-              confirmButtonText: '确定',
-              cancelButtonText: '取消',
-              inputPlaceholder: '请输入拒绝原因',
-              beforeClose: (action2, instance2, done2) => {
-                if (action2 === 'confirm') {
-                  applicationApi.approveApplication({
-                    applicationId: this.application.id,
-                    action: 'REJECT',
-                    approvalRemark: instance2.inputValue || ''
-                  }).then(() => {
-                    this.$message.success('已拒绝')
-                    instance2.cancelButtonLoading = false
-                    done2()
-                    done()
-                    this.loadApplicationDetail()
-                  }).catch(() => {
-                    instance2.cancelButtonLoading = false
-                  })
-                } else {
-                  instance2.cancelButtonLoading = false
-                  done2()
-                }
-              }
-            }).catch(() => {
-              instance.cancelButtonLoading = false
-            })
-          } else {
-            done()
-          }
+      this.approveTitle = `审批申领单 - ${this.application.applicationNo}`
+      this.approveForm = {
+        applicationId: this.application.id,
+        action: 'APPROVE',
+        rejectReason: ''
+      }
+      this.approveDialogVisible = true
+    },
+    confirmApprove() {
+      this.$refs.approveForm.validate(valid => {
+        if (valid) {
+          applicationApi.approveApplication(this.approveForm).then(response => {
+            this.$message.success('审批操作完成')
+            this.approveDialogVisible = false
+            this.loadApplicationDetail()
+          })
         }
-      }).catch(() => {})
+      })
     },
     handleOutbound() {
       this.$confirm(`确认对申领单 ${this.application.applicationNo} 进行出库操作?`, '出库确认', {
@@ -556,6 +557,9 @@ export default {
     .card-header {
       font-weight: 600;
       font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
     }
 
     .info-list {
